@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Mia Weekend Adventures",
+  "schemaVersion": 1,
+  "description": "Family activity planner for Jeff, Tania & Mia (3). Calendar view for July/August 2026 — click any weekend day to see that day's curated picks. Cards have gradient headers, Jeff + Tania voting (👍/👎/⏭️ not this weekend), shared notes field, and a preference learning panel. Updated by weekly Saturday scan."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mia's Weekend Adventures</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #FDFCFA;
+  --surface: #FFFFFF;
+  --border: #EDE9E2;
+  --border2: #DDD7CE;
+  --text: #1A1714;
+  --muted: #7A7268;
+  --muted2: #A89F95;
+  --jeff: #2563EB;
+  --jeff-bg: #EFF6FF;
+  --tania: #DB2777;
+  --tania-bg: #FDF2F8;
+  --both: #7C3AED;
+  --both-bg: #F5F3FF;
+  --green: #16A34A;
+  --green-bg: #F0FDF4;
+  --red: #DC2626;
+  --red-bg: #FEF2F2;
+  --skip: #D97706;
+  --skip-bg: #FFFBEB;
+  --done: #059669;
+  --done-bg: #ECFDF5;
+  --radius: 16px;
+  --sh1: 0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --sh2: 0 4px 16px rgba(0,0,0,.09),0 2px 4px rgba(0,0,0,.04);
+  --sh3: 0 20px 48px rgba(0,0,0,.14),0 8px 16px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:300}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-logo{width:40px;height:40px;background:linear-gradient(135deg,#FBBF24,#F59E0B);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 2px 8px rgba(245,158,11,.35);flex-shrink:0}
+.hdr-title{font-size:17px;font-weight:800;letter-spacing:-.4px}
+.hdr-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.hdr-add{background:var(--text);color:#fff;border:none;border-radius:9px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
+.hdr-add:hover{opacity:.85}
+
+/* LAYOUT */
+.layout{max-width:1120px;margin:0 auto;padding:26px 20px 60px;display:grid;grid-template-columns:300px 1fr;gap:26px;align-items:start}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.cal-section{position:static}}
+
+/* CALENDAR */
+.cal-section{position:sticky;top:74px;display:flex;flex-direction:column;gap:14px}
+.month-tabs{display:flex;gap:6px}
+.mtab{flex:1;padding:8px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;text-align:center}
+.mtab.active{background:var(--text);color:#fff;border-color:var(--text)}
+.cal-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--sh1);overflow:hidden}
+.cal-gh-row{display:grid;grid-template-columns:repeat(7,1fr);background:#F7F5F0}
+.cal-gh{font-size:9px;font-weight:800;text-align:center;padding:8px 0;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.cal-gh.wk{color:var(--text)}
+.cal-body{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)}
+.cal-cell{background:var(--surface);min-height:50px;padding:6px 5px;display:flex;flex-direction:column;gap:2px}
+.cal-cell.wknd{background:#FFFEF5;cursor:pointer}
+.cal-cell.wknd:hover{background:#FFF8E1}
+.cal-cell.sel{background:#FFF3CD;box-shadow:inset 0 0 0 2px #F59E0B}
+.cal-cell.done-cell{background:#F0FDF4}
+.cal-num{font-size:12px;font-weight:700;color:var(--muted2)}
+.cal-cell.wknd .cal-num{color:var(--text)}
+.cal-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:1px}
+.cal-dot{width:6px;height:6px;border-radius:50%}
+.cal-cnt{font-size:9px;color:var(--muted2);font-weight:600}
+.cal-done-check{font-size:10px;margin-top:1px}
+
+/* ACTS SECTION */
+.acts-section{display:flex;flex-direction:column;gap:0}
+.no-sel{padding:48px 24px;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.no-sel .ns-e{font-size:44px;display:block;margin-bottom:12px}
+.no-sel h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.no-sel p{font-size:13px;color:var(--muted);line-height:1.65}
+.day-block{margin-bottom:28px}
+.day-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--border)}
+.day-name{font-size:21px;font-weight:800;letter-spacing:-.5px}
+.day-date{font-size:14px;color:var(--muted);font-weight:500}
+.day-badge{margin-left:auto;font-size:11px;background:var(--text);color:#fff;padding:2px 9px;border-radius:20px;font-weight:700}
+.day-badge.done-badge{background:var(--done)}
+
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:13px}
+.show-more-btn{margin-top:10px;padding:8px;border-radius:10px;border:1.5px dashed var(--border2);background:transparent;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);width:100%;transition:all .15s}
+.show-more-btn:hover{background:var(--surface);border-color:var(--muted)}
+.empty-day{padding:26px 20px;text-align:center;background:var(--surface);border:1.5px dashed var(--border2);border-radius:var(--radius);color:var(--muted);font-size:13px}
+
+/* CARD */
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--sh1);overflow:hidden;transition:box-shadow .18s,transform .18s;cursor:pointer;display:flex;flex-direction:column;position:relative}
+.card:hover{box-shadow:var(--sh2);transform:translateY(-2px)}
+.card.skipped{border-color:#FCD34D;opacity:.9}
+.card.went{border-color:var(--done)}
+.card-went-banner{background:var(--done-bg);border-bottom:1px solid #A7F3D0;padding:5px 12px;font-size:11px;font-weight:700;color:var(--done);display:flex;align-items:center;gap:5px}
+.card-img{height:115px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:1}
+.card-emoji{font-size:44px;position:relative;z-index:2;filter:drop-shadow(0 2px 6px rgba(0,0,0,.18))}
+.card-body{padding:13px 13px 8px;flex:1;display:flex;flex-direction:column}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px}
+.cat-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.card-indicators{display:flex;gap:4px;flex-wrap:wrap}
+.ind{font-size:10px;padding:1px 5px;border-radius:10px;font-weight:700}
+.ind-note{background:#F3F4F6;color:var(--muted)}
+.ind-skip{background:var(--skip-bg);color:var(--skip)}
+.ind-went{background:var(--done-bg);color:var(--done)}
+.card-title{font-size:14px;font-weight:800;line-height:1.3;margin-bottom:4px;letter-spacing:-.2px}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.card-meta{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.cmeta{font-size:11.5px;color:var(--muted);display:flex;gap:5px;align-items:flex-start}
+.cmeta-i{font-size:12px;flex-shrink:0}
+.card-tags-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.tag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600}
+.tag-free{background:#DCFCE7;color:#166534}
+.tag-outdoor{background:#DBEAFE;color:#1E40AF}
+.tag-indoor{background:#EDE9FE;color:#5B21B6}
+.tag-toddler-friendly{background:#FEF9C3;color:#713F12}
+.tag-daytrip{background:#FFEDD5;color:#9A3412}
+/* active reaction tags on card */
+.rtag-active{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700;display:inline-flex;align-items:center;gap:2px}
+.rtag-jeff{background:var(--jeff-bg);color:var(--jeff)}
+.rtag-tania{background:var(--tania-bg);color:var(--tania)}
+.rtag-both{background:var(--both-bg);color:var(--both)}
+
+/* CARD VOTES */
+.card-votes{border-top:1px solid var(--border);background:#FAFAF8;padding:9px 12px;display:flex;flex-direction:column;gap:7px}
+.voter-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.vlbl{font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;white-space:nowrap;margin-right:2px}
+.vlbl-j{background:var(--jeff-bg);color:var(--jeff)}
+.vlbl-t{background:var(--tania-bg);color:var(--tania)}
+.vbtn{width:28px;height:28px;border-radius:7px;border:1.5px solid var(--border2);background:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0}
+.vbtn:hover{border-color:#999;background:var(--bg)}
+.vbtn.v-up{background:var(--green-bg);border-color:var(--green)}
+.vbtn.v-dn{background:var(--red-bg);border-color:var(--red)}
+.vbtn.v-skip{background:var(--skip-bg);border-color:var(--skip)}
+.skip-btn{height:26px;padding:0 8px;border-radius:7px;border:1.5px solid var(--border2);background:#fff;cursor:pointer;font-size:10px;font-weight:700;color:var(--muted);transition:all .12s;white-space:nowrap;flex-shrink:0}
+.skip-btn:hover{border-color:var(--skip);color:var(--skip)}
+.skip-btn.active{background:var(--skip-bg);border-color:var(--skip);color:var(--skip)}
+/* reaction tags row */
+.rtags-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding-top:2px}
+.rt-btn{height:24px;padding:0 7px;border-radius:20px;border:1.5px solid var(--border2);background:#fff;cursor:pointer;font-size:10px;font-weight:700;color:var(--muted);transition:all .12s;white-space:nowrap;display:inline-flex;align-items:center;gap:2px}
+.rt-btn:hover{border-color:var(--muted)}
+.rt-btn.j-on{background:var(--jeff-bg);border-color:var(--jeff);color:var(--jeff)}
+.rt-btn.t-on{background:var(--tania-bg);border-color:var(--tania);color:var(--tania)}
+.rt-btn.b-on{background:var(--both-bg);border-color:var(--both);color:var(--both)}
+/* bottom row */
+.card-btm{display:flex;align-items:center;gap:8px;padding-top:6px;border-top:1px solid var(--border);margin-top:2px}
+.did-it-btn{height:28px;padding:0 10px;border-radius:8px;border:1.5px solid var(--border2);background:#fff;cursor:pointer;font-size:11px;font-weight:700;color:var(--muted);transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.did-it-btn:hover{border-color:var(--done);color:var(--done)}
+.did-it-btn.went{background:var(--done-bg);border-color:var(--done);color:var(--done)}
+.src-lnk{margin-left:auto;font-size:10px;color:var(--muted2);text-decoration:none;border-bottom:1px dotted var(--muted2);white-space:nowrap}
+.src-lnk:hover{color:var(--text)}
+
+/* DETAIL SHEET */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:500;display:none;align-items:flex-end;justify-content:center}
+.sheet-bg.open{display:flex}
+.sheet{background:var(--surface);border-radius:22px 22px 0 0;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:var(--sh3)}
+.sheet-drag-w{padding:14px;display:flex;justify-content:center}
+.sheet-drag{width:36px;height:4px;background:var(--border2);border-radius:4px}
+.sheet-hero{height:160px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sheet-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sheet-hero-e{font-size:60px;position:relative;z-index:2;filter:drop-shadow(0 3px 8px rgba(0,0,0,.2))}
+.sheet-bd{padding:20px 22px 0}
+.sh-cat{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:8px}
+.sh-title{font-size:21px;font-weight:800;letter-spacing:-.5px;line-height:1.25;margin-bottom:8px}
+.sh-desc{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:18px}
+.sh-details{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.sh-dr{display:flex;align-items:flex-start;gap:12px}
+.sh-di{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.sh-dl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.sh-dv{font-size:14px;line-height:1.4}
+.sh-dv a{color:var(--jeff)}
+/* Sheet sections */
+.sh-sec{background:var(--bg);border-radius:14px;padding:15px;margin-bottom:12px}
+.sh-sec-t{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+/* Sheet voter rows */
+.sh-vr{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.sh-vr:last-child{margin-bottom:0}
+.sh-vname{font-size:14px;font-weight:800;width:54px;flex-shrink:0;padding-top:5px}
+.sh-vbtns{display:flex;flex-direction:column;gap:6px;flex:1}
+.sh-main-btns{display:flex;gap:6px;flex-wrap:wrap}
+.sh-mbtn{padding:7px 14px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface);font-size:14px;cursor:pointer;transition:all .12s;font-weight:700;white-space:nowrap}
+.sh-mbtn:hover{border-color:#999}
+.sh-mbtn.up-a{background:var(--green-bg);border-color:var(--green)}
+.sh-mbtn.dn-a{background:var(--red-bg);border-color:var(--red)}
+.sh-mbtn.sk-a{background:var(--skip-bg);border-color:var(--skip)}
+/* tag palette */
+.tag-palette{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.tp-btn{padding:5px 10px;border-radius:20px;border:1.5px solid var(--border2);background:var(--surface);cursor:pointer;font-size:12px;font-weight:700;transition:all .12px;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.tp-btn:hover{border-color:var(--muted)}
+.tp-btn.j-on{background:var(--jeff-bg);border-color:var(--jeff);color:var(--jeff)}
+.tp-btn.t-on{background:var(--tania-bg);border-color:var(--tania);color:var(--tania)}
+.tp-btn.b-on{background:var(--both-bg);border-color:var(--both);color:var(--both)}
+/* Did it section */
+.sh-did-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sh-did-btn{padding:9px 18px;border-radius:10px;border:2px solid var(--border2);background:var(--surface);cursor:pointer;font-size:14px;font-weight:800;transition:all .15s;display:flex;align-items:center;gap:7px}
+.sh-did-btn:hover{border-color:var(--done);color:var(--done)}
+.sh-did-btn.went{background:var(--done-bg);border-color:var(--done);color:var(--done)}
+.sh-did-note{font-size:12px;color:var(--muted);line-height:1.5;flex:1}
+/* Notes */
+.notes-ta{width:100%;padding:10px 13px;border:1.5px solid var(--border2);border-radius:10px;font-size:13.5px;font-family:inherit;resize:vertical;min-height:80px;background:var(--surface);line-height:1.55}
+.notes-ta:focus{outline:none;border-color:var(--text)}
+.notes-ft{display:flex;align-items:center;gap:10px;margin-top:8px}
+.notes-save{padding:7px 18px;border-radius:8px;border:none;background:var(--text);color:#fff;font-size:13px;font-weight:700;cursor:pointer}
+.notes-hint{font-size:11px;color:var(--muted)}
+
+/* PREFERENCES */
+.prefs-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--sh1);overflow:hidden;margin-top:10px}
+.prefs-hdr{padding:15px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.prefs-hdr h2{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px}
+.prefs-chev{font-size:12px;color:var(--muted);transition:transform .2s}
+.prefs-chev.open{transform:rotate(180deg)}
+.prefs-body{padding:0 18px 18px;display:none}
+.prefs-body.open{display:block}
+.prefs-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:500px){.prefs-grid{grid-template-columns:1fr}}
+.pc h3{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.pi{display:flex;align-items:flex-start;gap:7px;padding:6px 8px;background:var(--bg);border-radius:8px;margin-bottom:5px;font-size:13px}
+.pi-i{font-size:15px;flex-shrink:0}
+.prefs-empty{font-size:13px;color:var(--muted);font-style:italic}
+.prefs-tags-section{margin-bottom:14px}
+.prefs-tags-section h3{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.pt-row{display:flex;gap:6px;flex-wrap:wrap}
+.pt-chip{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700}
+.pt-chip-j{background:var(--jeff-bg);color:var(--jeff)}
+.pt-chip-t{background:var(--tania-bg);color:var(--tania)}
+.pt-chip-b{background:var(--both-bg);color:var(--both)}
+.prefs-insight{padding:12px 16px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;font-size:12.5px;color:#92400E;line-height:1.6}
+
+/* ADD MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border-radius:18px;padding:26px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;box-shadow:var(--sh3)}
+.modal h2{font-size:18px;font-weight:800;margin-bottom:18px}
+.fg{margin-bottom:12px}
+.fg label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px}
+.fg input,.fg textarea,.fg select{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:9px;font-size:14px;font-family:inherit;background:var(--bg)}
+.fg input:focus,.fg textarea:focus,.fg select:focus{outline:none;border-color:var(--text)}
+.fg textarea{min-height:70px;resize:vertical}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
+.chk-row label{font-size:13px;display:flex;align-items:center;gap:5px;font-weight:normal;color:var(--text);text-transform:none;letter-spacing:0}
+.m-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.btn-sec{padding:9px 18px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface);font-size:14px;cursor:pointer;font-weight:700}
+.btn-pri{padding:9px 20px;border-radius:9px;border:none;background:var(--text);color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--text);color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;z-index:700;opacity:0;transition:opacity .25s;pointer-events:none;box-shadow:var(--sh2)}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">🌟</div>
+    <div>
+      <div class="hdr-title">Mia's Weekend Adventures</div>
+      <div class="hdr-sub">Downtown Brooklyn · Jeff + Tania + Mia (3) · Updated every Saturday</div>
+    </div>
+  </div>
+  <button class="hdr-add" onclick="openModal()">＋ Add Activity</button>
+</div>
+
+<div class="layout">
+  <div class="cal-section">
+    <div class="month-tabs" id="monthTabs"></div>
+    <div class="cal-card">
+      <div class="cal-gh-row">
+        <div class="cal-gh wk">Su</div><div class="cal-gh">Mo</div><div class="cal-gh">Tu</div>
+        <div class="cal-gh">We</div><div class="cal-gh">Th</div><div class="cal-gh">Fr</div>
+        <div class="cal-gh wk">Sa</div>
+      </div>
+      <div class="cal-body" id="calBody"></div>
+    </div>
+    <div class="prefs-card">
+      <div class="prefs-hdr" onclick="togglePrefs()">
+        <h2>🧠 Preference Tracker</h2>
+        <span class="prefs-chev" id="prefsChev">▼</span>
+      </div>
+      <div class="prefs-body" id="prefsBody"></div>
+    </div>
+  </div>
+
+  <div class="acts-section" id="actsSection">
+    <div class="no-sel">
+      <span class="ns-e">📅</span>
+      <h3>Pick a weekend on the calendar</h3>
+      <p>Tap any highlighted Saturday or Sunday to see that day's picks for Mia's family.</p>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-bg" id="sheetBg" onclick="bgClose(event)">
+  <div class="sheet"><div class="sheet-drag-w"><div class="sheet-drag"></div></div><div id="sheetContent"></div></div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>➕ Add an Activity</h2>
+    <div class="fg"><label>Title</label><input id="mTitle" placeholder="Activity name"></div>
+    <div class="fg"><label>Description</label><textarea id="mDesc" placeholder="Brief description..."></textarea></div>
+    <div class="fg-row">
+      <div class="fg"><label>Date</label><input id="mDate" type="date"></div>
+      <div class="fg"><label>Category</label><select id="mCat"><option value="sports">⚽ Sports</option><option value="nature">🌿 Nature</option><option value="arts">🎭 Arts</option><option value="music">🎵 Music</option><option value="farm">🌾 Farm</option><option value="water">🏊 Water</option><option value="beach">🏖️ Beach</option><option value="food">🍜 Food</option><option value="museum">🏛️ Museum</option><option value="special">🌟 Special</option></select></div>
+    </div>
+    <div class="fg"><label>Timing</label><input id="mTiming" placeholder="e.g. 11am–6pm"></div>
+    <div class="fg"><label>Location</label><input id="mLoc" placeholder="e.g. Coney Island, Brooklyn"></div>
+    <div class="fg"><label>Distance from Downtown BK</label><input id="mDist" placeholder="e.g. 30 min"></div>
+    <div class="fg"><label>Source URL (optional)</label><input id="mUrl" placeholder="https://..."></div>
+    <div class="fg"><label>Tags</label>
+      <div class="chk-row">
+        <label><input type="checkbox" id="tFree"> Free</label>
+        <label><input type="checkbox" id="tOut"> Outdoor</label>
+        <label><input type="checkbox" id="tIn"> Indoor</label>
+        <label><input type="checkbox" id="tTod"> Toddler-friendly</label>
+        <label><input type="checkbox" id="tDay"> Day trip</label>
+      </div>
+    </div>
+    <div class="m-btns"><button class="btn-sec" onclick="closeModal()">Cancel</button><button class="btn-pri" onclick="saveActivity()">Add</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CATEGORY CONFIG ──────────────────────────────────────────────────────────
+const CAT={
+  sports: {e:'⚽',g:'linear-gradient(135deg,#60A5FA,#2563EB)',p:'#DBEAFE',pt:'#1E40AF',d:'#3B82F6',n:'Sports'},
+  nature: {e:'🌿',g:'linear-gradient(135deg,#4ADE80,#16A34A)',p:'#DCFCE7',pt:'#166534',d:'#22C55E',n:'Nature'},
+  arts:   {e:'🎭',g:'linear-gradient(135deg,#C084FC,#9333EA)',p:'#F3E8FF',pt:'#6B21A8',d:'#A855F7',n:'Arts'},
+  music:  {e:'🎵',g:'linear-gradient(135deg,#FCD34D,#D97706)',p:'#FEF9C3',pt:'#713F12',d:'#F59E0B',n:'Music'},
+  farm:   {e:'🌾',g:'linear-gradient(135deg,#F87171,#DC2626)',p:'#FEE2E2',pt:'#991B1B',d:'#EF4444',n:'Farm'},
+  water:  {e:'🏊',g:'linear-gradient(135deg,#38BDF8,#0284C7)',p:'#E0F2FE',pt:'#075985',d:'#0EA5E9',n:'Water'},
+  beach:  {e:'🏖️',g:'linear-gradient(135deg,#FB923C,#F97316)',p:'#FFEDD5',pt:'#9A3412',d:'#F97316',n:'Beach'},
+  food:   {e:'🍜',g:'linear-gradient(135deg,#F9A8D4,#EC4899)',p:'#FDF2F8',pt:'#9D174D',d:'#EC4899',n:'Food'},
+  museum: {e:'🏛️',g:'linear-gradient(135deg,#A78BFA,#7C3AED)',p:'#F5F3FF',pt:'#5B21B6',d:'#7C3AED',n:'Museum'},
+  special:{e:'🌟',g:'linear-gradient(135deg,#FCD34D,#F59E0B)',p:'#FEF9C3',pt:'#92400E',d:'#F59E0B',n:'Special'},
+};
+function c(k){return CAT[k]||CAT.special}
+
+// ── REACTION TAGS ────────────────────────────────────────────────────────────
+const RTAGS=[
+  {k:'excited',  e:'🤩',l:"Can't wait!"},
+  {k:'mia-fave', e:'💕',l:"Mia'll love"},
+  {k:'too-far',  e:'🗺️',l:'Too far'},
+  {k:'pricey',   e:'💸',l:'Too pricey'},
+  {k:'timing',   e:'⏰',l:'Bad timing'},
+  {k:'book-ahead',e:'📋',l:'Book ahead'},
+  {k:'rainy',    e:'☔',l:'Rainy day'},
+  {k:'next-year',e:'📌',l:'Next year'},
+];
+
+// ── CALENDAR CONFIG ──────────────────────────────────────────────────────────
+const MONTHS=[
+  {name:'July 2026',short:'July',year:2026,month:6},
+  {name:'August 2026',short:'Aug',year:2026,month:7},
+];
+const WKND_DATES=[
+  '2026-07-04','2026-07-05',
+  '2026-07-11','2026-07-12',
+  '2026-07-18','2026-07-19',
+  '2026-07-25','2026-07-26',
+  '2026-08-01','2026-08-02',
+  '2026-08-08','2026-08-09',
+];
+const PAIR={
+  '2026-07-04':'2026-07-05','2026-07-05':'2026-07-04',
+  '2026-07-11':'2026-07-12','2026-07-12':'2026-07-11',
+  '2026-07-18':'2026-07-19','2026-07-19':'2026-07-18',
+  '2026-07-25':'2026-07-26','2026-07-26':'2026-07-25',
+  '2026-08-01':'2026-08-02','2026-08-02':'2026-08-01',
+  '2026-08-08':'2026-08-09','2026-08-09':'2026-08-08',
+};
+
+// ── ACTIVITIES ───────────────────────────────────────────────────────────────
+let ACTIVITIES=[
+  // ── JUL 4 SAT ──────────────────────────────────────────────────────────
+  {id:'a039',title:'4th of July Fireworks — Brooklyn Heights Promenade',desc:'The best spot for Macy\'s fireworks over the East River — incredible views without Manhattan crowds. Set up a picnic spot at Pier 1 by 6pm.',timing:'Sat Jul 4 | Fireworks ~9:25pm',location:'Brooklyn Heights Promenade / BB Park Pier 1',distance:'15 min',source:'NYC Parks',sourceUrl:'https://www.nycgovparks.org/',imageUrl:'',day:'2026-07-04',category:'special',tags:['free','outdoor','toddler-friendly']},
+  {id:'a040',title:'Governors Island — July 4th',desc:'Car-free island for a July 4th afternoon. The Yard adventure playground, food vendors, art, and stunning harbor views. Free ferry from Pier 6.',timing:'Sat Jul 4 | Opens 7am',location:'Governors Island — ferry from Pier 6 or Red Hook',distance:'20 min',source:'Governors Island',sourceUrl:'https://www.govisland.com/',imageUrl:'',day:'2026-07-04',category:'nature',tags:['free','outdoor','toddler-friendly']},
+  {id:'a041',title:'July 4th at Prospect Park',desc:'All-day family festivities with outdoor concerts, lawn games, and classic holiday BBQ energy. Low-key and perfect for toddlers — bring a blanket and snacks.',timing:'Sat Jul 4 | All day',location:'Prospect Park, Brooklyn',distance:'20 min',source:'Prospect Park Alliance',sourceUrl:'https://www.prospectpark.org/',imageUrl:'',day:'2026-07-04',category:'special',tags:['free','outdoor','toddler-friendly']},
+  {id:'a042',title:'World Cup Fan Zone — Semifinals!',desc:'World Cup Semifinals — the tournament\'s biggest non-final games. Massive crowd energy at the Fan Zone.',timing:'Jul 4 | Match times vary',location:'Brooklyn Bridge Park, Roebling Plaza',distance:'10 min',source:'Brooklyn Bridge Parents',sourceUrl:'https://brooklynbridgeparents.com/',imageUrl:'',day:'2026-07-04',category:'sports',tags:['free','outdoor','toddler-friendly']},
+  {id:'a043',title:'Smorgasburg Williamsburg',desc:'Holiday edition food market. A festive Independence Day morning ritual before the afternoon celebrations.',timing:'Sat Jul 4 | 11am–6pm',location:'Marsha P. Johnson State Park, Williamsburg',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-07-04',category:'food',tags:['outdoor','toddler-friendly']},
+  // ── JUL 5 SUN ──────────────────────────────────────────────────────────
+  {id:'a044',title:'Coney Island — Luna Park, Beach & NY Aquarium',desc:'The ultimate NYC summer day trip. Ride the Wonder Wheel and kiddie rides at Luna Park, walk the beach and boardwalk, get a hot dog from Nathan\'s. The NY Aquarium\'s PlayQuarium and shark tank are huge with toddlers.',timing:'Sun Jul 5 | All day (check hours)',location:'Coney Island, Brooklyn',distance:'~40 min by subway',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/kids/coney-island-with-kids-a-brand-new-roller-coaster-the-mermaid-parade-other-family-fun',imageUrl:'',day:'2026-07-05',category:'beach',tags:['outdoor','toddler-friendly']},
+  {id:'a045',title:'NYC Public Pools — Cool Off After July 4th',desc:'Post-fireworks recovery day at the pool. Great for toddlers in the July heat.',timing:'Sun Jul 5 | Opens 11am',location:'Red Hook Pool, Brooklyn',distance:'20 min',source:'NYC Parks',sourceUrl:'https://www.nycgovparks.org/',imageUrl:'',day:'2026-07-05',category:'water',tags:['free','outdoor','toddler-friendly']},
+  {id:'a046',title:'SummerStage at Central Park',desc:'Free outdoor concerts at Central Park\'s Rumsey Playfield. World-class acts, iconic NYC setting. Check the July 5th lineup.',timing:'Sun Jul 5 | Times vary',location:'Central Park SummerStage, Manhattan',distance:'~45 min',source:'City Parks Foundation',sourceUrl:'https://www.cityparksfoundation.org/summerstage/',imageUrl:'',day:'2026-07-05',category:'music',tags:['free','outdoor','toddler-friendly']},
+  {id:'a047',title:'Brooklyn Museum — Free Family Visit',desc:'General admission is free for visitors under 19. The Brooklyn Museum is one of the great art museums in the US — exhibits constantly change. Sundays have extra family programming.',timing:'Sun Jul 5 | 11am–6pm',location:'Brooklyn Museum, Eastern Pkwy',distance:'20 min',source:'Brooklyn Museum',sourceUrl:'https://www.brooklynmuseum.org/visitors/families-kids',imageUrl:'',day:'2026-07-05',category:'museum',tags:['indoor','toddler-friendly']},
+  {id:'a048',title:'Smorgasburg Prospect Park',desc:'Sunday food market in the park — festive July 4th weekend energy. Grab food, find a patch of grass, relax.',timing:'Sun Jul 5 | 11am–6pm',location:'Breeze Hill, Prospect Park',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-07-05',category:'food',tags:['outdoor','toddler-friendly']},
+  {id:'a049',title:'World Cup Fan Zone — Final Build-Up',desc:'Second-to-last week as the World Cup heads toward the Final. Big energy, big games.',timing:'Jul 5 | Match times vary',location:'Brooklyn Bridge Park, Roebling Plaza',distance:'10 min',source:'Brooklyn Bridge Parents',sourceUrl:'https://brooklynbridgeparents.com/',imageUrl:'',day:'2026-07-05',category:'sports',tags:['free','outdoor']},
+  // ── JUL 11 SAT ─────────────────────────────────────────────────────────
+  {id:'a050',title:'BBG Summer First Discoveries',desc:'Summer drop-in program for early learners (up to age 4) on select weekdays at the Brooklyn Botanic Garden. Explore meadow, woodland, and marsh habitats through hands-on play. Note: main sessions are Wed & Fri; check bbg.org for weekend availability.',timing:'Wed & Fri Jul 8–Aug 14 | 10:30am–12:30pm (check for weekend sessions)',location:'Brooklyn Botanic Garden',distance:'20 min',source:'Brooklyn Botanic Garden',sourceUrl:'https://www.bbg.org/learn/kids_and_families',imageUrl:'',day:'2026-07-11',category:'nature',tags:['outdoor','toddler-friendly']},
+  {id:'a051',title:'Smorgasburg Williamsburg',desc:'74 vendors, 22 new this year — the Saturday food market ritual. Great for trying new cuisines with Mia.',timing:'Sat Jul 11 | 11am–6pm',location:'Marsha P. Johnson State Park, Williamsburg',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-07-11',category:'food',tags:['outdoor','toddler-friendly']},
+  {id:'a052',title:'Rockaway Beach with Splash Pad',desc:'Mid-July peak beach day. The 30th Street splash pad is perfect for Mia — water guns, sprinklers, sensory-safe features. Boardwalk snacks, real ocean waves.',timing:'Sat Jul 11 | All day',location:'Rockaway Beach, Queens (30th St)',distance:'~45 min',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/best-things-to-do-rockaway-beach-kids-itinerary',imageUrl:'',day:'2026-07-11',category:'beach',tags:['free','outdoor','toddler-friendly']},
+  {id:'a053',title:'Blueberry Picking at Fishkill Farms',desc:'Peak blueberry season in the Hudson Valley. Organic pick-your-own — combine with a farm lunch and river swim on the way back.',timing:'Sat Jul 11 | Opens 9am',location:'Fishkill Farms, Dutchess County, NY',distance:'~90 min',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/',imageUrl:'',day:'2026-07-11',category:'farm',tags:['outdoor','daytrip','toddler-friendly']},
+  {id:'a054',title:'BRIC Celebrate Brooklyn! — Community Joy Day',desc:'BRIC brings Community Joy Day to the Bandshell with Saint James Joy, Pahua, and Puppetmobile. The Puppetmobile is especially great for toddlers — giant puppets, music, and spectacle.',timing:'Sat Jul 11 | Check bricartsmedia.org for time',location:'Prospect Park Lena Horne Bandshell, Brooklyn',distance:'20 min',source:'BRIC Celebrate Brooklyn',sourceUrl:'https://bricartsmedia.org/celebrate-brooklyn/',imageUrl:'',day:'2026-07-11',category:'music',tags:['free','outdoor','toddler-friendly']},
+  {id:'a055',title:'Governors Island',desc:'The Yard adventure playground + food vendors + art + harbor views. Every 3rd Saturday has special arts programming.',timing:'Sat Jul 11 | Opens 7am',location:'Governors Island — ferry from Pier 6 or Red Hook',distance:'20 min',source:'Governors Island',sourceUrl:'https://www.govisland.com/',imageUrl:'',day:'2026-07-11',category:'nature',tags:['free','outdoor','toddler-friendly']},
+  // ── JUL 12 SUN ─────────────────────────────────────────────────────────
+  {id:'a056',title:'BBG — Brooklyn Botanic Garden Visit',desc:'A summer Sunday at the Brooklyn Botanic Garden — the Discovery Garden lets Mia dig, plant, and explore sensory stations. Beautiful in July.',timing:'Sun Jul 12 | Opens 10am',location:'Brooklyn Botanic Garden',distance:'20 min',source:'Brooklyn Botanic Garden',sourceUrl:'https://www.bbg.org/learn/kids_and_families',imageUrl:'',day:'2026-07-12',category:'nature',tags:['outdoor','toddler-friendly']},
+  {id:'a057',title:'Summer at the Terminal: Latin Flavors & Culture',desc:'Waterfront celebration of Latin culture at Brooklyn Army Terminal — live music, dance performances, amazing food, and family-friendly programming. Free event in Sunset Park.',timing:'Sun Jul 12 | 1–7pm',location:'Brooklyn Army Terminal, Sunset Park',distance:'25 min',source:'Brooklyn Bridge Parents',sourceUrl:'https://brooklynbridgeparents.com/',imageUrl:'',day:'2026-07-12',category:'music',tags:['free','outdoor','toddler-friendly']},
+  {id:'a058',title:'AMNH — Discovery Room & DinoTerrace',desc:'American Museum of Natural History — the Discovery Room lets toddlers touch, play, and sort through exhibits. The outdoor DinoTerrace is open summer weekends.',timing:'Sun Jul 12 | 10am–5:30pm',location:'American Museum of Natural History, Upper West Side',distance:'~45 min',source:'Mommy Poppins',sourceUrl:'https://www.amnh.org/learn-teach/children-and-families',imageUrl:'',day:'2026-07-12',category:'museum',tags:['indoor','toddler-friendly']},
+  {id:'a059',title:'Smorgasburg Prospect Park',desc:'Sunday food market in the park. Great with the Latin culture event at Brooklyn Army Terminal — do one before the other.',timing:'Sun Jul 12 | 11am–6pm',location:'Breeze Hill, Prospect Park',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-07-12',category:'food',tags:['outdoor','toddler-friendly']},
+  {id:'a060',title:'NYC Public Pools',desc:'Beat the July heat. Toddler sections at Red Hook or Sunset Park pools.',timing:'Sun Jul 12 | Opens 11am',location:'Brooklyn neighborhood pools',distance:'15–25 min',source:'NYC Parks',sourceUrl:'https://www.nycgovparks.org/',imageUrl:'',day:'2026-07-12',category:'water',tags:['free','outdoor','toddler-friendly']},
+  {id:'a061',title:'Coney Island — Beach Day',desc:'Hit the Coney Island beach, boardwalk, Nathan\'s hot dogs, and the Wonder Wheel. A classic NYC summer Sunday that Mia will remember.',timing:'Sun Jul 12 | All day',location:'Coney Island, Brooklyn',distance:'~40 min',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/kids/coney-island-with-kids-a-brand-new-roller-coaster-the-mermaid-parade-other-family-fun',imageUrl:'',day:'2026-07-12',category:'beach',tags:['outdoor','toddler-friendly']},
+  // ── JUL 18 SAT ─────────────────────────────────────────────────────────
+  {id:'a062',title:'Brooklyn Botanic Garden — Summer Visit',desc:'A beautiful summer Saturday morning at the BBG. The Children\'s Discovery Garden has hands-on seasonal nature activities. Summer blooms make the garden gorgeous.',timing:'Sat Jul 18 | Opens 10am',location:'Brooklyn Botanic Garden',distance:'20 min',source:'Brooklyn Botanic Garden',sourceUrl:'https://www.bbg.org/learn/kids_and_families',imageUrl:'',day:'2026-07-18',category:'nature',tags:['outdoor','toddler-friendly']},
+  {id:'a063',title:'Gotham FC vs Seattle Reign FC',desc:'Watch the reigning NWSL champions at home — Sports Illustrated Stadium in Jersey City is a manageable, fun venue with great sightlines. Noon kickoff means no late night. Amazing women\'s soccer in an electric atmosphere.',timing:'Sat Jul 18 | 12:00pm ET',location:'Sports Illustrated Stadium, Jersey City, NJ',distance:'~35 min',source:'Gotham FC',sourceUrl:'https://www.gothamfc.com/schedule',imageUrl:'',day:'2026-07-18',category:'sports',tags:['outdoor','toddler-friendly']},
+  {id:'a064',title:'Rockaway Beach with Splash Pad',desc:'Peak mid-July beach day. The 30th Street splash pad is Mia\'s dream — water guns, circular pipes, sensory-safe features. Finish with boardwalk food.',timing:'Sat Jul 18 | All day',location:'Rockaway Beach, Queens (30th St)',distance:'~45 min',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/best-things-to-do-rockaway-beach-kids-itinerary',imageUrl:'',day:'2026-07-18',category:'beach',tags:['free','outdoor','toddler-friendly']},
+  {id:'a065',title:'Governors Island',desc:'Car-free summer island with The Yard playground, food vendors, and art. Every 3rd Saturday is special arts day.',timing:'Sat Jul 18 | Opens 7am',location:'Governors Island — ferry from Pier 6 or Red Hook',distance:'20 min',source:'Governors Island',sourceUrl:'https://www.govisland.com/',imageUrl:'',day:'2026-07-18',category:'nature',tags:['free','outdoor','toddler-friendly']},
+  {id:'a066',title:'Blueberry Picking at Fishkill Farms',desc:'Peak mid-July blueberry season. The farm is stunning — combine with a swim at a swimming hole on the drive back.',timing:'Sat Jul 18 | Opens 9am',location:'Fishkill Farms, Dutchess County, NY',distance:'~90 min',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/',imageUrl:'',day:'2026-07-18',category:'farm',tags:['outdoor','daytrip','toddler-friendly']},
+  {id:'a067',title:'BRIC Celebrate Brooklyn! — Royel Otis',desc:'Ticketed benefit show featuring rising Australian indie pop duo Royel Otis — a more grown-up night out if you can get a sitter, or a fun early evening with Mia on the lawn before the show.',timing:'Sat Jul 18 | Evening (check bricartsmedia.org)',location:'Prospect Park Lena Horne Bandshell, Brooklyn',distance:'20 min',source:'BRIC Celebrate Brooklyn',sourceUrl:'https://bricartsmedia.org/celebrate-brooklyn/',imageUrl:'',day:'2026-07-18',category:'music',tags:['outdoor']},
+  // ── JUL 19 SUN ─────────────────────────────────────────────────────────
+  {id:'a068',title:'Brooklyn Botanic Garden — Sunday Visit',desc:'A relaxed Sunday morning at the BBG. The Discovery Garden is perfect for Mia — sensory play, digging, water features.',timing:'Sun Jul 19 | Opens 10am',location:'Brooklyn Botanic Garden',distance:'20 min',source:'Brooklyn Botanic Garden',sourceUrl:'https://www.bbg.org/learn/kids_and_families',imageUrl:'',day:'2026-07-19',category:'nature',tags:['outdoor','toddler-friendly']},
+  {id:'a069',title:'World Cup Fan Zone — FINAL DAY!',desc:'Last day of the Fan Zone and very possibly the World Cup Final itself. Epic send-off to the summer\'s biggest sporting spectacle. Bring Mia for the energy!'ltiming:'Sun Jul 19 | Match times vary',location:'Brooklyn Bridge Park, Roebling Plaza',distance:'10 min',source:'Brooklyn Bridge Parents',sourceUrl:'https://brooklynbridgeparents.com/',imageUrl:'',day:'2026-07-19',category:'sports',tags:['free','outdoor','toddler-friendly']},
+  {id:'a070',title:'Catch-and-Release Fishing at Pier 5',desc:'Maritime Youth Alliance brings all the gear to Pier 5. Toddlers love watching the water, the fish, and helping hold the rod. Free.',timing:'Sun Jul 19 | Morning (check brooklynbridgepark.org)',location:'Brooklyn Bridge Park, Pier 5',distance:'10 min',source:'Brooklyn Bridge Park',sourceUrl:'https://brooklynbridgepark.org/',imageUrl:'',day:'2026-07-19',category:'nature',tags:['free','outdoor','toddler-friendly']},
+  {id:'a071',title:'Staten Island Ferry + St. George Promenade',desc:'Completely free. The 25-minute ferry across New York Harbor has some of the best views of Lower Manhattan and the Statue of Liberty. Toddlers love the boat. Walk the St. George promenade on arrival, grab a snack, ferry back.',timing:'Sun Jul 19 | Ferry runs 24/7',location:'Whitehall Terminal, Manhattan → St. George, Staten Island',distance:'20 min to terminal',source:'NYC Ferry',sourceUrl:'https://www.nycferry.com/',imageUrl:'',day:'2026-07-19',category:'special',tags:['free','outdoor','toddler-friendly']},
+  {id:'a072',title:'Smorgasburg Prospect Park',desc:'Sunday food market — blanket on the Breeze Hill lawn, 70+ vendors, relaxed summer afternoon.',timing:'Sun Jul 19 | 11am–6pm',location:'Breeze Hill, Prospect Park',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-07-19',category:'food',tags:['outdoor','toddler-friendly']},
+  {id:'a073',title:'Lincoln Center Summer for the City',desc:'Free outdoor family performances. World-class dance and music on the iconic Lincoln Center plaza — running through Aug 8.',timing:'Sun Jul 19 | Various times (check lincolncenter.org)',location:'Lincoln Center, Manhattan',distance:'~45 min',source:'Lincoln Center',sourceUrl:'https://lincolncenter.org/summer-for-the-city-2026',imageUrl:'',day:'2026-07-19',category:'arts',tags:['free','outdoor','toddler-friendly']},
+  // ── JUL 25 SAT ─────────────────────────────────────────────────────────
+  {id:'w20260725_1',title:'Governors Island Open Studios — Artists in Residence',desc:'LMCC\'s Arts Center opens its artist studios to the public today — one of only two Open Studio days this summer. Wander into working studios, meet artists, see new work in progress. Combine with The Yard playground and waterfront food vendors for a full family afternoon.',timing:'Sat Jul 25 | 12pm–5pm',location:'Arts Center at Governors Island',distance:'20 min (incl. ferry from Pier 6)',source:'Governors Island / LMCC',sourceUrl:'https://www.govisland.com/blog/governors-island-arts-announces-2026-season',imageUrl:'',day:'2026-07-25',category:'arts',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260725_2',title:'BRIC Celebrate Brooklyn at Brower Park: Black House Radio',desc:'BRIC brings its Celebrate Brooklyn series to Brower Park in Crown Heights — a neighborhood-scale free concert that feels more intimate and community-spirited than the main Bandshell. Black House Radio brings eclectic, joyful sets. A great low-key alternative to the big shows.',timing:'Sat Jul 25 | Afternoon (check bricartsmedia.org)',location:'Brower Park, Crown Heights, Brooklyn',distance:'25 min',source:'BRIC Celebrate Brooklyn',sourceUrl:'https://bricartsmedia.org/celebrate-brooklyn/',imageUrl:'',day:'2026-07-25',category:'music',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260725_3',title:'Blueberry Picking at Rose Hill Farm',desc:'Stunning organic Hudson Valley farm with u-pick blueberries through mid-August. Beautiful hillside setting in Red Hook, NY — pack a picnic and plan a half-day trip. The landscape alone is worth the drive.',timing:'Sat Jul 25 | Opens 9am (call ahead: rosehillfarm.com)',location:'Rose Hill Farm, Red Hook, NY (Hudson Valley)',distance:'~105 min',source:'Hudson Valley Farms',sourceUrl:'https://hvmag.com/food/pick-your-own-berries-farms-hudson-valley/',imageUrl:'',day:'2026-07-25',category:'farm',tags:['outdoor','daytrip','toddler-friendly']},
+  {id:'w20260725_4',title:'Smorgasburg Williamsburg',desc:'The Saturday food market staple — 74 vendors, 22 new for 2026. Arrive by 11:30am before lines. Great for Mia to snack, wander, and take in the Williamsburg waterfront.',timing:'Sat Jul 25 | 11am–6pm',location:'Marsha P. Johnson State Park, Williamsburg',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-07-25',category:'food',tags:['outdoor','toddler-friendly']},
+  {id:'w20260725_5',title:'Rockaway Beach — Peak Late July',desc:'Late July is prime beach season at Rockaway. The 30th Street splash pad has sprinklers, water guns, and sensory-safe features perfect for Mia. Boardwalk food, real waves to watch, easy A-train ride.',timing:'Sat Jul 25 | All day',location:'Rockaway Beach, Queens (30th St splash pad)',distance:'~45 min',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/best-things-to-do-rockaway-beach-kids-itinerary',imageUrl:'',day:'2026-07-25',category:'beach',tags:['free','outdoor','toddler-friendly']},
+  // ── JUL 26 SUN ─────────────────────────────────────────────────────────
+  {id:'w20260726_1',title:'Free Family Kayaking at Brooklyn Bridge Park',desc:'Every Sunday, Pier 2 hosts free family kayaking — one of the best free activities in NYC. Toddlers sit in the kayak with a parent. Life vests provided, no experience needed. Stunning Manhattan skyline views from the water.',timing:'Sun Jul 26 | 12:00–2:30pm',location:'Brooklyn Bridge Park, Pier 2',distance:'10 min',source:'Brooklyn Bridge Park',sourceUrl:'https://brooklynbridgepark.org/events/',imageUrl:'',day:'2026-07-26',category:'water',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260726_2',title:'Smorgasburg Prospect Park',desc:'Sunday food market at Breeze Hill in Prospect Park. Blanket on the grass, 70+ food vendors, fresh summer air — an easy, lovely afternoon for the family.',timing:'Sun Jul 26 | 11am–6pm',location:'Breeze Hill, Prospect Park (Lincoln Rd entrance)',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-07-26',category:'food',tags:['outdoor','toddler-friendly']},
+  {id:'w20260726_3',title:'NYC Public Pools — Beat the July Heat',desc:'Free city pools are a summer essential. Red Hook Pool and Sunset Park Pool are closest to Downtown Brooklyn — both have shallow sections safe for toddlers.',timing:'Sun Jul 26 | Opens 11am',location:'Red Hook Pool or Sunset Park Pool',distance:'15–25 min',source:'NYC Parks',sourceUrl:'https://www.nycgovparks.org/',imageUrl:'',day:'2026-07-26',category:'water',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260726_4',title:'Coney Island — Boardwalk & Beach',desc:'Classic NYC summer Sunday. Walk the boardwalk, hit the beach, grab a Nathan\'s hot dog, and take a spin on the Wonder Wheel. The NY Aquarium\'s PlayQuarium is great if you want some indoor time too.',timing:'Sun Jul 26 | All day',location:'Coney Island, Brooklyn',distance:'~40 min',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/kids/coney-island-with-kids-a-brand-new-roller-coaster-the-mermaid-parade-other-family-fun',imageUrl:'',day:'2026-07-26',category:'beach',tags:['outdoor','toddler-friendly']},
+  {id:'w20260726_5',title:'Governors Island — Sunday Harbor Day',desc:'Car-free island with The Yard adventure playground, food vendors, ongoing art installations (including "The Oyster" by Alan Michelson), and sweeping harbor views. Free ferry before 11am from Pier 6.',timing:'Sun Jul 26 | Opens 7am',location:'Governors Island — ferry from Pier 6 or Red Hook',distance:'20 min',source:'Governors Island',sourceUrl:'https://www.govisland.com/',imageUrl:'',day:'2026-07-26',category:'nature',tags:['free','outdoor','toddler-friendly']},
+  // ── AUG 1 SAT ──────────────────────────────────────────────────────────
+  {id:'w20260801_1',title:'Lincoln Center: globalFEST — Elida Almeida & Sinkane',desc:'Lincoln Center\'s Summer for the City presents globalFEST featuring Cape Verdean star Elida Almeida, Brooklyn\'s own indie-rock polymath Sinkane, and Saha Gnawa. World-class world music on the iconic outdoor plaza — free/choose-what-you-pay.',timing:'Sat Aug 1 | Check lincolncenter.org for times',location:'Lincoln Center, Upper West Side, Manhattan',distance:'~45 min',source:'Lincoln Center',sourceUrl:'https://lincolncenter.org/summer-for-the-city-2026',imageUrl:'',day:'2026-08-01',category:'music',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260801_2',title:'Peach Season Begins at Fishkill Farms',desc:'Peach picking starts in August at this gorgeous organic Hudson Valley farm. Kids\' favorite farm in the region — animals, farm store with incredible baked goods, sweeping valley views. Leave early and make a full day of it.',timing:'Sat Aug 1 | Opens 9am (call ahead: fishkillfarms.com)',location:'Fishkill Farms, Hopewell Junction, NY',distance:'~90 min',source:'Fishkill Farms',sourceUrl:'https://fishkillfarms.com/',imageUrl:'',day:'2026-08-01',category:'farm',tags:['outdoor','daytrip','toddler-friendly']},
+  {id:'w20260801_3',title:'Governors Island — Late Summer Arts',desc:'The island\'s summer art installations are in full swing — including Alan Michelson\'s monumental "The Oyster" sculpture on the Western Promenade. Great for The Yard playground, art exploration, and harbor views. Free Saturday climate art workshops run this weekend.',timing:'Sat Aug 1 | Opens 7am',location:'Governors Island — ferry from Pier 6 or Red Hook',distance:'20 min',source:'Governors Island',sourceUrl:'https://www.govisland.com/',imageUrl:'',day:'2026-08-01',category:'nature',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260801_4',title:'Smorgasburg Williamsburg',desc:'Saturday food market running through October. August brings the full lineup — 74 vendors, peak summer energy. Always a great morning activity with Mia.',timing:'Sat Aug 1 | 11am–6pm',location:'Marsha P. Johnson State Park, Williamsburg',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-08-01',category:'food',tags:['outdoor','toddler-friendly']},
+  {id:'w20260801_5',title:'Rockaway Beach — August Beach Day',desc:'Early August is peak beach season — warm water, full lifeguard coverage, lively boardwalk. The 30th Street splash pad is always Mia\'s highlight. Beach in the morning, splash pad in the afternoon.',timing:'Sat Aug 1 | All day',location:'Rockaway Beach, Queens (30th St splash pad)',distance:'~45 min',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/best-things-to-do-rockaway-beach-kids-itinerary',imageUrl:'',day:'2026-08-01',category:'beach',tags:['free','outdoor','toddler-friendly']},
+  // ── AUG 2 SUN ──────────────────────────────────────────────────────────
+  {id:'w20260802_1',title:'Free Family Kayaking at Brooklyn Bridge Park',desc:'Every Sunday, Pier 2 hosts free family kayaking sessions. Toddlers sit with a parent in the kayak — one of the most memorable free experiences in NYC. Life vests and paddles provided. No experience needed.',timing:'Sun Aug 2 | 12:00–2:30pm',location:'Brooklyn Bridge Park, Pier 2',distance:'10 min',source:'Brooklyn Bridge Park',sourceUrl:'https://brooklynbridgepark.org/events/',imageUrl:'',day:'2026-08-02',category:'water',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260802_2',title:'Coney Island — Late Summer Beach',desc:'August beach day at Coney Island before the season starts winding down. All the classics: boardwalk, Wonder Wheel, Nathan\'s hot dogs, NY Aquarium. Mia will love the waves and the colorful amusement park.',timing:'Sun Aug 2 | All day',location:'Coney Island, Brooklyn',distance:'~40 min',source:'Mommy Poppins',sourceUrl:'https://mommypoppins.com/kids/coney-island-with-kids-a-brand-new-roller-coaster-the-mermaid-parade-other-family-fun',imageUrl:'',day:'2026-08-02',category:'beach',tags:['outdoor','toddler-friendly']},
+  {id:'w20260802_3',title:'Smorgasburg Prospect Park',desc:'Sunday food market at Breeze Hill. August is the season\'s peak — full vendor lineup, the park is stunning, and it\'s a perfect lazy family afternoon.',timing:'Sun Aug 2 | 11am–6pm',location:'Breeze Hill, Prospect Park',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-08-02',category:'food',tags:['outdoor','toddler-friendly']},
+  {id:'w20260802_4',title:'NYC Public Pools — August Heat Escape',desc:'August heat is serious — the free city pools are the move. Red Hook and Sunset Park pools are closest; both have toddler-friendly shallow areas.',timing:'Sun Aug 2 | Opens 11am',location:'Red Hook Pool or Sunset Park Pool',distance:'15–25 min',source:'NYC Parks',sourceUrl:'https://www.nycgovparks.org/',imageUrl:'',day:'2026-08-02',category:'water',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260802_5',title:'Governors Island — Sunday on the Harbor',desc:'A classic Sunday on the island — The Yard playground for Mia, "The Oyster" installation to explore, food vendors for lunch, and harbor breezes. Free ferry before 11am from Pier 6.',timing:'Sun Aug 2 | Opens 7am',location:'Governors Island — ferry from Pier 6 or Red Hook',distance:'20 min',source:'Governors Island',sourceUrl:'https://www.govisland.com/',imageUrl:'',day:'2026-08-02',category:'nature',tags:['free','outdoor','toddler-friendly']},
+  // ── AUG 8 SAT ──────────────────────────────────────────────────────────
+  {id:'w20260808_1',title:'BRIC Celebrate Brooklyn: Aaliyah "One in a Million" Tribute',desc:'Free massive tribute concert celebrating Aaliyah\'s iconic 1996 album at the Prospect Park Bandshell. This is going to be a joyful, dancing crowd — get there early for a good lawn spot. The kind of free show that fills the park with families dancing together.',timing:'Sat Aug 8 | 7pm',location:'Prospect Park Lena Horne Bandshell, Brooklyn',distance:'20 min',source:'BRIC Celebrate Brooklyn',sourceUrl:'https://bricartsmedia.org/celebrate-brooklyn/',imageUrl:'',day:'2026-08-08',category:'music',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260808_2',title:'Lincoln Center: Jamaica Day — Black Uhuru (Last Day!)',desc:'The final day of Lincoln Center\'s Summer for the City closes with Jamaica Day featuring reggae legends Black Uhuru and Speaker Breaker. An incredible free send-off for the summer series on the iconic plaza.',timing:'Sat Aug 8 | Check lincolncenter.org for times',location:'Lincoln Center, Upper West Side, Manhattan',distance:'~45 min',source:'Lincoln Center',sourceUrl:'https://lincolncenter.org/summer-for-the-city-2026',imageUrl:'',day:'2026-08-08',category:'music',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260808_3',title:'Hindu Aarti Lamp Ceremony at Pebble Beach',desc:'Dance artist Aeilushi Mistry performs the traditional Hindu Aarti (lamp-lighting ceremony) at Pebble Beach in Brooklyn Bridge Park — a serene, visually stunning ritual involving fire, flowers, and prayer that Mia will find mesmerizing. Free and open to all.',timing:'Sat Aug 8 | Check brooklynbridgepark.org for time',location:'Pebble Beach, Brooklyn Bridge Park',distance:'15 min',source:'Brooklyn Bridge Park',sourceUrl:'https://brooklynbridgepark.org/events/',imageUrl:'',day:'2026-08-08',category:'special',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260808_4',title:'Governors Island — Late Summer Saturday',desc:'The island in August has a relaxed end-of-summer energy — The Yard playground, great food vendors, ongoing art installations. Free Saturday climate art workshops make this a particularly enriching family day.',timing:'Sat Aug 8 | Opens 7am',location:'Governors Island — ferry from Pier 6 or Red Hook',distance:'20 min',source:'Governors Island',sourceUrl:'https://www.govisland.com/',imageUrl:'',day:'2026-08-08',category:'nature',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260808_5',title:'Smorgasburg Williamsburg',desc:'Late summer edition of the Saturday food market — 74 vendors still going strong. A great morning start before an afternoon show or beach.',timing:'Sat Aug 8 | 11am–6pm',location:'Marsha P. Johnson State Park, Williamsburg',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-08-08',category:'food',tags:['outdoor','toddler-friendly']},
+  // ── AUG 9 SUN ──────────────────────────────────────────────────────────
+  {id:'w20260809_1',title:'NY Liberty vs Las Vegas Aces — Legends Weekend',desc:'One of the most exciting WNBA matchups of the season, right in your backyard at Barclays Center in Brooklyn. Sunday 12:30pm tipoff is perfect for Mia — no late night, easy commute. Legends Weekend adds celebrity energy and special programming. The Liberty are the reigning champs. Don\'t miss this one.',timing:'Sun Aug 9 | 12:30pm ET',location:'Barclays Center, 620 Atlantic Ave, Downtown Brooklyn',distance:'10 min',source:'NY Liberty / Barclays Center',sourceUrl:'https://www.barclayscenter.com/events/detail/new-york-liberty-vs-las-vegas-aces-20260809',imageUrl:'',day:'2026-08-09',category:'sports',tags:['indoor','toddler-friendly']},
+  {id:'w20260809_2',title:'Free Family Kayaking at Brooklyn Bridge Park',desc:'Sunday family kayaking at Pier 2 — ane of the best free summer activities in the city. Toddlers ride in the kayak with a parent. All gear provided. Perfect before or after the Liberty game.',timing:'Sun Aug 9 | 12:00–2:30pm',location:'Brooklyn Bridge Park, Pier 2',distance:'10 min',source:'Brooklyn Bridge Park',sourceUrl:'https://brooklynbridgepark.org/events/',imageUrl:'',day:'2026-08-09',category:'water',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260809_3',title:'Smorgasburg Prospect Park',desc:'Sunday food market for the last weekend of the tracker. August Prospect Park with a blanket on the lawn, 70+ vendors, great weather — a perfect family morning before the Liberty game.',timing:'Sun Aug 9 | 11am–6pm',location:'Breeze Hill, Prospect Park',distance:'20 min',source:'Smorgasburg',sourceUrl:'https://www.smorgasburg.com/',imageUrl:'',day:'2026-08-09',category:'food',tags:['outdoor','toddler-friendly']},
+  {id:'w20260809_4',title:'Governors Island — End of Summer',desc:'A Sunday on the island as summer winds down — The Yard playground, "The Oyster" installation, food vendors, harbor views. The August island feels relaxed and peaceful.',timing:'Sun Aug 9 | Opens 7am',location:'Governors Island — ferry from Pier 6 or Red Hook',distance:'20 min',source:'Governors Island',sourceUrl:'https://www.govisland.com/',imageUrl:'',day:'2026-08-09',category:'nature',tags:['free','outdoor','toddler-friendly']},
+  {id:'w20260809_5',title:'NYC Public Pools — Last Peak Summer Splash',desc:'Late August city pools before the season closes. Red Hook or Sunset Park pools near Downtown Brooklyn. Cool off in the morning, then head to the Liberty game.',timing:'Sun Aug 9 | Opens 11am',location:'Red Hook Pool or Sunset Park Pool',distance:'15–25 min',source:'NYC Parks',sourceUrl:'https://www.nycgovparks.org/',imageUrl:'',day:'2026-08-09',category:'water',tags:['free','outdoor','toddler-friendly']},
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let votes={};
+let custom=[];
+let currentMonth=0;
+let selectedDate=null;
+let prefsOpen=false;
+let expandedDays=new Set();
+
+function load(){
+  try{
+    const v=localStorage.getItem('mia_v4');if(v)votes=JSON.parse(v);
+    const cu=localStorage.getItem('mia_cx');if(cu)custom=JSON.parse(cu);
+    const m=localStorage.getItem('mia_mo');if(m!==null)currentMonth=+m;
+    const d=localStorage.getItem('mia_dt');if(d&&WKND_DATES.includes(d))selectedDate=d;
+    // clamp month index to valid range
+    if(currentMonth>=MONTHS.length)currentMonth=0;
+  }catch(e){}
+  // auto-select current weekend on first load
+  if(!selectedDate)selectedDate='2026-07-04';
+}
+function sv(){localStorage.setItem('mia_v4',JSON.stringify(votes))}
+function sc(){localStorage.setItem('mia_cx',JSON.stringify(custom))}
+function aa(){return[...ACTIVITIES,...custom]}
+function gv(id){return votes[id]||{}}
+function gVote(id,p){return gv(id)[p]||0}
+function gSkip(id,p){return!!gv(id)[p+'Skip']}
+function gTags(id,p){return gv(id)[p+'Tags']||[]}
+function gNote(id){return gv(id).notes||''}
+function gDid(id){return!!gv(id).didIt}
+function ensV(id){if(!votes[id])votes[id]={}}
+
+function setVote(id,p,val,e){
+  if(e)e.stopPropagation();
+  ensV(id);
+  votes[id][p]=(votes[id][p]===val)?0:val;
+  if(votes[id][p]!==0)votes[id][p+'Skip']=false;
+  sv();rer();
+}
+function setSkip(id,p,e){
+  if(e)e.stopPropagation();
+  ensV(id);
+  votes[id][p+'Skip']=!votes[id][p+'Skip'];
+  if(votes[id][p+'Skip'])votes[id][p]=0;
+  sv();rer();
+  if(document.getElementById('sheetBg').classList.contains('open'))openSheet(id);
+}
+function toggleTag(id,p,key,e){
+  if(e)e.stopPropagation();
+  ensV(id);
+  const arr=votes[id][p+'Tags']||[];
+  const i=arr.indexOf(key);
+  if(i>=0)arr.splice(i,1);else arr.push(key);
+  votes[id][p+'Tags']=arr;
+  sv();rer();
+  if(document.getElementById('sheetBg').classList.contains('open'))openSheet(id);
+}
+function toggleDidIt(id,e){
+  if(e)e.stopPropagation();
+  ensV(id);
+  votes[id].didIt=!votes[id].didIt;
+  sv();rer();
+  if(document.getElementById('sheetBg').classList.contains('open'))openSheet(id);
+  showToast(votes[id].didIt?'✅ Marked as done!':'Unmarked');
+}
+function saveNote(id){
+  const val=document.getElementById('noteArea_'+id).value.trim();
+  ensV(id);votes[id].notes=val;sv();rer();
+  showToast(val?'Note saved ✓':'Note cleared');
+}
+
+// ── CALENDAR ─────────────────────────────────────────────────────────────────
+function renderMonthTabs(){
+  document.getElementById('monthTabs').innerHTML=MONTHS.map((m,i)=>
+    `<button class="mtab${i===currentMonth?' active':''}" onclick="selMonth(${i})">${m.name}</button>`
+  ).join('');
+}
+function selMonth(i){currentMonth=i;localStorage.setItem('mia_mo',i);renderMonthTabs();renderCal()}
+
+function ds(y,m,d){return`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+
+function renderCal(){
+  const{year,month}=MONTHS[currentMonth];
+  const fdow=new Date(year,month,1).getDay();
+  const days=new Date(year,month+1,0).getDate();
+  const am={};aa().forEach(a=>{if(!am[a.day])am[a.day]=[];am[a.day].push(a)});
+  let html='';
+  for(let i=0;i<fdow;i++)html+=`<div class="cal-cell"></div>`;
+  for(let d=1;d<=days;d++){
+    const dateStr=ds(year,month,d);
+    const dow=(fdow+d-1)%7;
+    const isW=WKND_DATES.includes(dateStr);
+    const isSel=dateStr===selectedDate;
+    const acts=am[dateStr]||[];
+    const isDone=acts.some(a=>gDid(a.id));
+    let cls='cal-cell';
+    if(isW)cls+=' wknd';
+    if(isSel)cls+=' sel';
+    if(isDone&&isW)cls+=' done-cell';
+    const dots=acts.slice(0,6).map(a=>`<div class="cal-dot" style="background:${c(a.category).d}"></div>`).join('');
+    html+=`<div class="${cls}"${isW?` onclick="selDate('${dateStr}')"`:''}>`
+      +`<span class="cal-num">${d}</span>`
+      +(acts.length?`<div class="cal-dots">${dots}</div><span class="cal-cnt">${acts.length}</span>`:'')
+      +(isDone?`<span class="cal-done-check">✅</span>`:'')
+      +`</div>`;
+  }
+  document.getElementById('calBody').innerHTML=html;
+}
+
+function selDate(dateStr){
+  selectedDate=dateStr;localStorage.setItem('mia_dt',dateStr);
+  renderCal();renderActs();
+}
+
+// ── RENDERING HELPERS ─────────────────────────────────────────────────────────
+function mkTag(t){
+  const m={'free':'Free','outdoor':'Outdoor','indoor':'Indoor','toddler-friendly':'Toddler ✓','daytrip':'Day Trip'};
+  return`<span class="tag tag-${t.replace(/-friendly$|trip$/,'').replace(/-/g,'')}">${m[t]||t}</span>`;
+}
+
+function tagClass(id,p,key){
+  const jhas=gTags(id,'jeff').includes(key),thas=gTags(id,'tania').includes(key);
+  if(p==='jeff')return jhas?(thas?'b-on':'j-on'):'';
+  if(p==='tania')return thas?(jhas?'b-on':'t-on'):'';
+  return'';
+}
+
+function activeTags(id){
+  const allKeys=new Set([...gTags(id,'jeff'),...gTags(id,'tania')]);
+  return[...allKeys].map(k=>{
+    const t=RTAGS.find(r=>r.k===k);if(!t)return'';
+    const jh=gTags(id,'jeff').includes(k),th=gTags(id,'tania').includes(k);
+    const cls=jh&&th?'rtag-both':jh?'rtag-jeff':'rtag-tania';
+    const who=jh&&th?'both':jh?'Jeff':'Tania';
+    return`<span class="rtag-active ${cls}">${t.e} ${t.l} <span style="opacity:.7;font-size:9px">${who}</span></span>`;
+  }).join('');
+}
+
+function renderCard(a){
+  const jv=gVote(a.id,'jeff'),tv=gVote(a.id,'tania');
+  const jsk=gSkip(a.id,'jeff'),tsk=gSkip(a.id,'tania');
+  const did=gDid(a.id),note=gNote(a.id);
+  const cat=c(a.category);
+  const atags=activeTags(a.id);
+  const imgH=a.imageUrl?`<img src="${a.imageUrl}" alt="" onerror="this.style.display='none'">`:'';
+  const inds=[];
+  if(did)inds.push(`<span class="ind ind-went">✅ Done!</span>`);
+  if(jsk||tsk)inds.push(`<span class="ind ind-skip">⏭️ Skip</span>`);
+  if(note)inds.push(`<span class="ind ind-note">📝</span>`);
+  return`
+<div class="card${did?' went':jsk||tsk?' skipped':''}" onclick="openSheet('${a.id}')">
+  ${did?`<div class="card-went-banner">✅ We did this one!</div>`:''}
+  <div class="card-img" style="background:${cat.g}">
+    ${imgH}
+    <span class="card-emoji">${cat.e}</span>
+  </div>
+  <div class="card-body">
+    <div class="card-top">
+      <span class="cat-pill" style="background:${cat.p};color:${cat.pt}">${cat.n}</span>
+      <div class="card-indicators">${inds.join('')}</div>
+    </div>
+    <div class="card-title">${a.title}</div>
+    <div class="card-desc">${a.desc}</div>
+    <div class="card-meta">
+      <div class="cmeta"><span class="cmeta-i">🕐</span>${a.timing}</div>
+      <div class="cmeta"><span class="cmeta-i">📍</span>${a.location}${a.distance?` · 🚇 ${a.distance}`:''}</div>
+    </div>
+    <div class="card-tags-row">${(a.tags||[]).map(mkTag).join('')}</div>
+    ${atags?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px">${atags}</div>`:''}
+  </div>
+  <div class="card-votes" onclick="event.stopPropagation()">
+    <div class="voter-row">
+      <span class="vlbl vlbl-j">Jeff</span>
+      <button class="vbtn${jv===1?' v-up':''}" onclick="setVote('${a.id}','jeff',1,event)">👍</button>
+      <button class="vbtn${jv===-1?' v-dn':''}" onclick="setVote('${a.id}','jeff',-1,event)">👎</button>
+      <button class="skip-btn${jsk?' active':''}" onclick="setSkip('${a.id}','jeff',event)">⏭️ skip wknd</button>
+    </div>
+    <div class="voter-row">
+      <span class="vlbl vlbl-t">Tania</span>
+      <button class="vbtn${tv===1?' v-up':''}" onclick="setVote('${a.id}','tania',1,event)">👍</button>
+      <button class="vbtn${tv===-1?' v-dn':''}" onclick="setVote('${a.id}','tania',-1,event)">👎</button>
+      <button class="skip-btn${tsk?' active':''}" onclick="setSkip('${a.id}','tania',event)">⏭️ skip wknd</button>
+    </div>
+    <div class="rtags-row">
+      ${RTAGS.map(t=>{
+        const jh=gTags(a.id,'jeff').includes(t.k),th=gTags(a.id,'tania').includes(t.k);
+        const cls=jh&&th?'b-on':jh?'j-on':th?'t-on':'';
+        return`<button class="rt-btn${cls?' '+cls:''}" onclick="openSheet('${a.id}')" title="Tap in card detail to set">${t.e} ${t.l}</button>`;
+      }).join('')}
+    </div>
+    <div class="card-btm">
+      <button class="did-it-btn${did?' went':''}" onclick="toggleDidIt('${a.id}',event)">${did?'✅ We went!':'☑️ Did it?'}</button>
+      <a class="src-lnk" href="${a.sourceUrl||'#'}" target="_blank" onclick="event.stopPropagation()">${a.source} ↗</a>
+    </div>
+  </div>
+</div>`;
+}
+
+function renderDayBlock(dateStr,dayName){
+  const all=aa().filter(a=>a.day===dateStr);
+  const isExp=expandedDays.has(dateStr);
+  const shown=isExp?all:all.slice(0,5);
+  const extra=all.length-5;
+  const doneCount=all.filter(a=>gDid(a.id)).length;
+  const d=new Date(dateStr+'T12:00:00');
+  const label=d.toLocaleDateString('en-US',{month:'long',day:'numeric'});
+  return`<div class="day-block">
+    <div class="day-hdr">
+      <span class="day-name">${dayName}</span>
+      <span class="day-date">${label}</span>
+      <span class="day-badge${doneCount?` done-badge`:''}">${doneCount?`✅ ${doneCount} done · `:''}${all.length} pick${all.length!==1?'s':''}</span>
+    </div>
+    <div class="cards-grid">${shown.length?shown.map(renderCard).join(''):'<div class="empty-day">No activities yet — Claude will add picks on the next scan 🔍</div>'}</div>
+    ${extra>0&&!isExp?`<button class="show-more-btn" onclick="expandDay('${dateStr}')">Show ${extra} more option${extra!==1?'s':''} →</button>`:''}
+    ${isExp&&all.length>5?`<button class="show-more-btn" onclick="collapseDay('${dateStr}')">← Show fewer</button>`:''}
+  </div>`;
+}
+
+function expandDay(ds){expandedDays.add(ds);renderActs()}
+function collapseDay(ds){expandedDays.delete(ds);renderActs()}
+
+function renderActs(){
+  const el=document.getElementById('actsSection');
+  if(!selectedDate){el.innerHTML=`<div class="no-sel"><span class="ns-e">📅</span><h3>Pick a weekend on the calendar</h3><p>Tap any highlighted Saturday or Sunday to see that day's picks for Mia's family.</p></div>`;return}
+  const paired=PAIR[selectedDate];
+  const d=new Date(selectedDate+'T12:00:00');
+  const dow=d.getDay();
+  const satDate=dow===6?selectedDate:paired;
+  const sunDate=dow===0?selectedDate:paired;
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:0">${satDate?renderDayBlock(satDate,'Saturday'):''}${sunDate?renderDayBlock(sunDate,'Sunday'):''}${renderPrefsBlock()}
+  <div style="display:flex;justify-content:center;margin-top:4px"><button class="hdr-add" onclick="openModal()">＋ Add Activity</button></div></div>`;
+}
+
+// ── PREFERENCES ───────────────────────────────────────────────────────────────
+function prefsContent(){
+  const all=aa();
+  const hasV=a=>{const v=gv(a.id);return v.jeff||v.tania||v.jeffSkip||v.taniaSkip||(v.jeffTags||[]).length||(v.taniaTags||[]).length||v.notes};
+  const voted=all.filter(hasV);
+  if(!voted.length)return`<p class="prefs-empty">Start voting and tagging activities — this panel learns your family's tastes over time.</p>`;
+  const bothLove=voted.filter(a=>gVote(a.id,'jeff')===1&&gVote(a.id,'tania')===1);
+  const bothPass=voted.filter(a=>gVote(a.id,'jeff')===-1&&gVote(a.id,'tania')===-1);
+  const jOnly=voted.filter(a=>gVote(a.id,'jeff')===1&&gVote(a.id,'tania')!==1&&!gSkip(a.id,'jeff'));
+  const tOnly=voted.filter(a=>gVote(a.id,'tania')===1&&gVote(a.id,'jeff')!==1&&!gSkip(a.id,'tania'));
+  const done=voted.filter(a=>gDid(a.id));
+  const jTagCnt={},tTagCnt={};
+  voted.forEach(a=>{gTags(a.id,'jeff').forEach(k=>jTagCnt[k]=(jTagCnt[k]||0)+1);gTags(a.id,'tania').forEach(k=>tTagCnt[k]=(tTagCnt[k]||0)+1)});
+  const topJTags=Object.entries(jTagCnt).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k])=>RTAGS.find(r=>r.k===k)).filter(Boolean);
+  const topTTags=Object.entries(tTagCnt).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k])=>RTAGS.find(r=>r.k===k)).filter(Boolean);
+  const piList=(items)=>items.slice(0,3).map(a=>`<div class="pi"><span class="pi-i">${c(a.category).e}</span><span>${a.title}</span></div>`).join('');
+  const empty=s=>`<p class="prefs-empty">${s}</p>`;
+  return`
+  <div class="prefs-grid">
+    <div class="pc"><h3>💚 Both Interested</h3>${bothLove.length?piList(bothLove):empty('Keep voting!')}</div>
+    <div class="pc"><h3>❌ Both Pass</h3>${bothPass.length?piList(bothPass):empty('None yet')}</div>
+    <div class="pc"><h3>💙 Jeff Wants</h3>${jOnly.length?piList(jOnly):empty('None yet')}</div>
+    <div class="pc"><h3>💗 Tania Wants</h3>${tOnly.length?piList(tOnly):empty('None yet')}</div>
+  </div>
+  ${done.length?`<div class="pc" style="margin-bottom:14px"><h3>✅ Went & Did It (${done.length})</h3><div style="display:flex;flew-wrap:wrap;gap:5px">${done.slice(0,6).map(a=>`<span style="font-size:12px;padding:3px 9px;background:var(--done-bg);color:var(--done);border-radius:20px;font-weight:700">${c(a.category).e} ${a.title.length>28?a.title.slice(0,28)+'…':a.title}</span>`).join('')}</div></div>`:``}
+ ${topJTags.length||topTTags.length?`<div class="prefs-tags-section"><h3>Reaction Tag Patterns</h3><div class="pt-row">
+    ${topJTags.map(t=>`<span class="pt-chip pt-chip-j">Jeff: ${t.e} ${t.l}</span>`).join('')}
+    ${topTTags.map(t=>`<span class="pt-chip pt-chip-t">Tania: ${t.e} ${t.l}</span>`).join('')}
+  </div></div>`:''}
+  <div class="prefs-insight"><strong>📊 �laude is tracking:</strong> your votes, skips, reaction tags, and which activities you actually did. The weekly scan uses all of this to refine future picks — more of what you both love, less of what got 👢 or 💸��� tags from both of you.</div>`;
+}
+
+function renderPrefsBlock(){
+  return`<div class="prefs-card" style="margin-top:24px;margin-bottom:20px">
+    <div class="prefs-hdr" onclick="togglePrefs()"><h2>🧡 Preference Tracker</h2><span class="prefs-chev${prefsOpen?' open':''}" id="prefsChev">▼</span></div>
+    <div class="prefs-body${prefsOpen?' open':''}" id="prefsBody">${prefsOpen?prefsContent():''}</div>
+  </div>`;
+}
+
+function togglePrefs(){
+  prefsOpen=!prefsOpen;
+  const b=document.getElementById('prefsBody');
+  const ch=document.getElementById('prefsChev');
+  if(b){b.innerHTML=prefsOpen?prefsContent():'';b.classList.toggle('open',prefsOpen)}
+  if(ch)ch.classList.toggle('open',prefsOpen);
+}
+
+// ── DETAIL SHEET ──────────────────────────────────────────────────────────────
+function openSheet(id){
+  const a=aa().find(x=>x.id===id);if(!a)return;
+  const jv=gVote(id,'jeff'),tv=gVote(id,'tania');
+  const jsk=gSkip(id,'jeff'),tsk=gSkip(id,'tania');
+  const did=gDid(id),note=gNote(id);
+  const cat=c(a.category);
+  const imgH=a.imageUrl?`<img src="${a.imageUrl}" alt="" onerror="this.style.display='none'">`:'';
+
+  const tagPalette=(p)=>RTAGS.map(t=>{
+    const jh=gTags(id,'jeff').includes(t.k),ourh=gTags(id,'tania').includes(t.k);
+    let cls='';
+    if(p==='jeff'&&jh)cls=jh&&th?'b-on':'j-on';
+    if(p==='tania'&&th)cls=jh&&th?'b-on':'t-on';
+    return`<button class="tp-btn${cls?' '+cls:''}" onclick="toggleTag('${id}','${p}','${t.k}',event)">${t.e} ${t.l}</button>`;
+  }).join('');
+
+  document.getElementById('sheetContent').innerHTML=`
+    <div class="sheet-hero" style="background:${cat.g}">${imgH}<span class="sheet-hero-e">${cat.e}</span></div>
+    <div class="sheet-bd">
+      <span class="sh-cat" style="background:${cat.p};color:${cat.pt}">${cat.n}</span>
+      <h2 class="sh-title">${a.title}</h2>
+      <p class="sh-desc">${a.desc}</p>
+      <div class="sh-details">
+        <div class="sh-dr"><span class="sh-di">🕐</span><div><div class="sh-dl">When</div><div class="sh-dv">${a.timing}</div></div></div>
+        <div class="sh-dr"><span class="sh-di">📍</span><div><div class="sh-dl">Where</div><div class="sh-dv">${a.location}</div></div></div>
+        ${a.distance?`<div class="sh-dr"><span class="sh-di">🚇</span><div><div class="sh-dl">Distance</div><div class="sh-dv">${a.distance}</div></div></div>`:''}
+        <div class="sh-dr"><span class="sh-di">🔗</span><div><div class="sh-dl">Source</div><div class="sh-dv"><a href="${a.sourceUrl||'#'}" target="_blank">${a.source} ↗</a></div></div></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:18px">${(a.tags||[]).map(mkTag).join('')}</div>
+
+      <div class="sh-sec">
+        <div class="sh-sec-t">Reactions</div>
+        <div class="sh-vr">
+          <span class="sh-vname" style="color:var(--jeff)">Jeff</span>
+          <div class="sh-vbtns">
+            <div class="sh-main-btns">
+              <button class="sh-mbtn${jv===1?' up-a':''}" onclick="setVote('${id}','jeff',1,event);openSheet('${id}')">👍 Yes!</button>
+              <button class="sh-mbtn${jv===-1?' dn-a':''}" onclick="setVote('${id}','jeff',-1,event);openSheet('${id}')">👎 Nope</button>
+              <button class="sh-mbtn${jsk?' sk-a':''}" onclick="setSkip('${id}','jeff',event)">⏭️ Not this wknd</button>
+            </div>
+            <div class="tag-palette">${tagPalette('jeff')}</div>
+          </div>
+        </div>
+        <div class="sh-vr">
+          <span class="sh-vname" style="color:var(--tania)">Tania</span>
+          <div class="sh-vbtns">
+            <div class="sh-main-btns">
+              <button class="sh-mbtn${tv===1?' up-a':''}" onclick="setVote('${id}','tania',1,event);openSheet('${id}')">👍 Yes!</button>
+              <button class="sh-mbtn${tv===-1?' dn-a':''}" onclick="setVote('${id}','tania',-1,event);openSheet('${id}')">👎 Nope</button>
+              <button class="sh-mbtn${tsk?' sk-a':''}" onclick="setSkip('${id}','tania',event)">⏭️ Not this wknd</button>
+            </div>
+            <div class="tag-palette">${tagPalette('tania')}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sh-sec">
+        <div class="sh-sec-t">Did We Go?</div>
+        <div class="sh-did-row">
+          <button class="sh-did-btn${did?' went':''}" onclick="toggleDidIt('${id}',event)">${did?'✅ We went!':'☑️ Mark as Done'}</button>
+          <p class="sh-did-note">${did?'Marked as done — the preference tracker counts this as a positive signal for this type of activity.':'Tap after you go to track what you\'ve actually done. Helps Claude learn what worked.'}</p>
+        </div>
+      </div>
+
+      <div class="sh-sec">
+        <div class="sh-sec-t">📝 Notes & Thoughts</div>
+        <textarea class="notes-ta" id="noteArea_${id}" placeholder="Logistics, questions, past experience, Mia's reaction, anything...">${note}</textarea>
+        <div class="notes-ft">
+          <button class="notes-save" onclick="saveNote('${id}')">Save</button>
+          <span class="notes-hint">Shared · persists across sessions</span>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('sheetBg').classList.add('open');
+}
+function bgClose(e){if(e.target===document.getElementById('sheetBg'))document.getElementById('sheetBg').classList.remove('open')}
+
+// ── ADD MODAL ─────────────────────────────────────────────────────────────────
+function openModal(){document.getElementById('mDate').value=selectedDate||'2026-07-25';document.getElementById('modalBg').classList.add('open')}
+function closeModal(){document.getElementById('modalBg').classList.remove('open')}
+function saveActivity(){
+  const title=document.getElementById('mTitle').value.trim(),date=document.getElementById('mDate').value;
+  if(!title||!date){showToast('Please fill in title and date');return}
+  const tags=[];
+  if(document.getElementById('tFree').checked)tags.push('free');
+  if(document.getElementById('tOut').checked)tags.push('outdoor');
+  if(document.getElementById('tIn').checked)tags.push('indoor');
+  if(document.getElementById('tTod').checked)tags.push('toddler-friendly');
+  if(document.getElementById('tDay').checked)tags.push('daytrip');
+  custom.push({id:'c'+Date.now(),title,desc:document.getElementById('mDesc').value.trim(),timing:document.getElementById('mTiming').value.trim(),location:document.getElementById('mLoc').value.trim(),distance:document.getElementById('mDist').value.trim(),source:'Added by family',sourceUrl:document.getElementById('mUrl').value.trim(),imageUrl:'',day:date,category:document.getElementById('mCat').value,tags,custom:true});
+  sc();closeModal();rer();showToast('Activity added ✓');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+// ── FULL RERENDER ─────────────────────────────────────────────────────────────
+function rer(){renderMonthTabs();renderCal();renderActs()}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+load();rer();
+</script>
+</body>
+</html>
