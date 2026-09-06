@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Glossary{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Glossary</h1>
+  <a href="{{ url_for('academy.index') }}">&larr; Academy</a>
+</div>
+<p class="hint">{{ terms|length }} terms from across the five primers.</p>
+<dl class="glossary wide-glossary">
+  {% for t in terms %}
+    <dt>{{ t.term }} <span class="tag muted">{{ t.module_name }}</span></dt>
+    <dd>{{ t.definition }}</dd>
+  {% endfor %}
+</dl>
+{% endblock %}

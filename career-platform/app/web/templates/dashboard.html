@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Today &middot; AI Career Platform{% endblock %}
+{% block content %}
+
+{% if not research_ready %}
+<div class="notice">
+  <strong>Live research is off.</strong> Set <code>ANTHROPIC_API_KEY</code> and restart to
+  enable scanning and content refresh. Everything else &mdash; the primers, the daily quiz,
+  shortlisting, the archive &mdash; works without it.
+</div>
+{% endif %}
+
+<div class="grid-3">
+  <a class="stat" href="{{ url_for('jobs.index', tab='new') }}">
+    <span class="stat-n">{{ counts.new }}</span>
+    <span class="stat-l">new roles to review</span>
+  </a>
+  <a class="stat" href="{{ url_for('academy.daily_quiz') }}">
+    <span class="stat-n">{{ quiz_progress.answered }}/{{ quiz_progress.total or config.QUESTIONS_PER_DAY }}</span>
+    <span class="stat-l">today's questions{% if streak %} &middot; {{ streak }}-day streak{% endif %}</span>
+  </a>
+  <a class="stat" href="{{ url_for('networking.index') }}">
+    <span class="stat-n">{{ capacity.active }}</span>
+    <span class="stat-l">active networking targets</span>
+  </a>
+</div>
+
+<div class="columns">
+  <section class="col-main">
+    <div class="section-head">
+      <h2>New this week</h2>
+      <a href="{{ url_for('jobs.index', tab='new') }}">All {{ counts.new }} &rarr;</a>
+    </div>
+
+    {% if new_jobs %}
+      {% for job in new_jobs %}{% include "_job_card.html" %}{% endfor %}
+    {% else %}
+      <div class="empty">
+        <p>Nothing new in the queue.</p>
+        <p class="muted">
+          {% if latest_run %}
+            Last scan {{ latest_run.started_at|ago }}, {{ latest_run.jobs_new }} new of
+            {{ latest_run.jobs_found }} found.
+          {% else %}
+            No scan has run yet. Use <strong>Run scan</strong> above to search all
+            {{ 8 }} sources.
+          {% endif %}
+        </p>
+      </div>
+    {% endif %}
+  </section>
+
+  <aside class="col-side">
+    <div class="section-head"><h2>Study priority</h2></div>
+    <p class="hint">
+      Set by the gap engine from the diagnostic baseline, what scanned roles are
+      asking for, and your quiz results. It decides the daily question mix.
+    </p>
+    {% for row in gap %}
+      <a class="prio" href="{{ url_for('academy.module', module_key=row.module_key) }}">
+        <div class="prio-head">
+          <span class="prio-name">{{ row.name }}</span>
+          <span class="prio-band band-{{ priority_label(row.priority)|lower|replace(' ', '-') }}">
+            {{ priority_label(row.priority) }}
+          </span>
+        </div>
+        <div class="bar"><span style="width: {{ (row.priority * 100 / 0.4)|round|int }}%"></span></div>
+      </a>
+    {% endfor %}
+
+    <div class="section-head" style="margin-top:2rem">
+      <h2>Networking</h2>
+      <a href="{{ url_for('networking.index') }}">All &rarr;</a>
+    </div>
+    {% if targets %}
+      {% for t in targets %}
+        <div class="mini-target">
+          <strong>{{ t.person_name }}</strong>
+          {% if t.is_latent %}<span class="tag latent">latent</span>{% endif %}
+          <div class="muted">{{ t.person_title or '' }}{% if t.person_title %} &middot; {% endif %}{{ t.company }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">Shortlist a role and targets appear here.</p>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

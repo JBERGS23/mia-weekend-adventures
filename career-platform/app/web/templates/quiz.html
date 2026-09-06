@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Daily quiz{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Today's questions</h1>
+  <a href="{{ url_for('academy.index') }}">&larr; Academy</a>
+</div>
+<p class="hint">
+  {{ progress.answered }} of {{ progress.total }} answered{% if progress.answered %},
+  {{ progress.correct }} correct{% endif %}{% if streak %} &middot; {{ streak }}-day streak{% endif %}.
+  Questions rotate across all five modules, weighted toward the ones the gap engine
+  flags as weakest.
+</p>
+
+{% for q in questions %}
+<article class="card question" id="q{{ q.attempt_id }}">
+  <p class="tags"><span class="tag track">{{ q.module_name }}</span>
+    <span class="tag muted">{{ q.style }}</span></p>
+  <h3>{{ q.question }}</h3>
+
+  {% if q.answered %}
+    <ol class="options answered">
+      {% for opt in q.options %}
+        <li class="{{ 'correct' if loop.index0 == q.correct_index else ('wrong' if loop.index0 == q.chosen_index else '') }}">
+          {{ opt }}
+          {% if loop.index0 == q.correct_index %}<span class="mark">correct</span>{% endif %}
+          {% if loop.index0 == q.chosen_index and loop.index0 != q.correct_index %}<span class="mark">your answer</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+    <div class="explanation">
+      <strong>{{ 'Correct.' if q.is_correct else 'Not quite.' }}</strong>
+      {{ q.explanation }}
+    </div>
+    <p class="meta"><a href="{{ url_for('academy.module', module_key=q.module_key) }}">Read the primer on this &rarr;</a></p>
+  {% else %}
+    <form method="post" action="{{ url_for('academy.answer_quiz') }}">
+      <input type="hidden" name="attempt_id" value="{{ q.attempt_id }}">
+      <ol class="options">
+        {% for opt in q.options %}
+          <li>
+            <label>
+              <input type="radio" name="chosen_index" value="{{ loop.index0 }}" required>
+              <span>{{ opt }}</span>
+            </label>
+          </li>
+        {% endfor %}
+      </ol>
+      <button class="btn primary">Answer</button>
+    </form>
+  {% endif %}
+</article>
+{% else %}
+  <div class="empty"><p>No questions available.</p></div>
+{% endfor %}
+
+{% if progress.complete %}
+  <div class="notice">
+    Done for today. Your results have been folded into the gap weights, which
+    changes tomorrow's mix.
+  </div>
+{% endif %}
+{% endblock %}

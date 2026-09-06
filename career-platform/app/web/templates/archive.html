@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Archive &middot; AI Career Platform{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Archive</h1>
+  <a href="{{ url_for('jobs.index') }}">&larr; Back to the queue</a>
+</div>
+<p class="hint">
+  Everything ever scanned, including what you dismissed. {{ counts.archive }} postings.
+</p>
+
+<form method="get" class="filters">
+  <input type="search" name="q" value="{{ q }}" placeholder="Company, title, location, description">
+  <select name="track">
+    <option value="">Any track</option>
+    {% for key, label in {'ai_native':'AI-native','traditional_transformation':'Traditional / transformation','pe_vc':'PE / VC','consulting':'Consulting'}.items() %}
+      <option value="{{ key }}" {{ 'selected' if track == key }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="decision">
+    <option value="">Any decision</option>
+    <option value="undecided" {{ 'selected' if decision == 'undecided' }}>Undecided</option>
+    <option value="shortlisted" {{ 'selected' if decision == 'shortlisted' }}>Shortlisted</option>
+    <option value="dismissed" {{ 'selected' if decision == 'dismissed' }}>Dismissed</option>
+  </select>
+  <select name="source">
+    <option value="">Any source</option>
+    {% for s in sources %}<option value="{{ s }}" {{ 'selected' if source == s }}>{{ s }}</option>{% endfor %}
+  </select>
+  <button class="btn">Search</button>
+</form>
+
+{% if jobs %}
+  <table class="table">
+    <thead><tr><th>Role</th><th>Company</th><th>Track</th><th>Comp</th><th>Fit</th><th>Decision</th><th>Seen</th></tr></thead>
+    <tbody>
+    {% for job in jobs %}
+      <tr>
+        <td><a href="{{ url_for('jobs.detail', job_id=job.id) }}">{{ job.title }}</a></td>
+        <td>{{ job.company }}</td>
+        <td>{{ job.track|track }}</td>
+        <td class="comp-{{ job.comp_confidence|lower }}">{{ job|comp }}<br><span class="muted small">{{ job.comp_confidence }}</span></td>
+        <td>{{ '%.2f'|format(job.fit_score) }}</td>
+        <td>{{ job.decision|capitalize if job.decision else '-' }}</td>
+        <td class="muted small">{{ job.first_seen_at|ago }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="empty"><p>No postings match.</p></div>
+{% endif %}
+{% endblock %}

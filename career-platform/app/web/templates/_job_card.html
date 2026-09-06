@@ -1,0 +1,46 @@
+{# One posting in a list. Used by the queue, the dashboard and the archive. #}
+<article class="card job">
+  <div class="job-head">
+    <div>
+      <h3><a href="{{ url_for('jobs.detail', job_id=job.id) }}">{{ job.title }}</a></h3>
+      <p class="company">{{ job.company }}{% if job.location %} &middot; {{ job.location }}{% endif %}</p>
+    </div>
+    <div class="fit" title="{{ job.fit_rationale }}">
+      <span class="fit-score">{{ '%.2f'|format(job.fit_score) }}</span>
+      <span class="fit-label">fit</span>
+    </div>
+  </div>
+
+  <p class="tags">
+    <span class="tag track">{{ job.track|track }}</span>
+    {% if job.ai_mandate %}<span class="tag mandate">AI mandate</span>{% endif %}
+    <span class="tag comp comp-{{ job.comp_confidence|lower }}">
+      {{ job|comp }} &middot; {{ job.comp_confidence }}
+    </span>
+    {% if job.remote_policy and job.remote_policy != 'unknown' %}
+      <span class="tag">{{ job.remote_policy|capitalize }}</span>
+    {% endif %}
+    <span class="tag muted">{{ job.source_name }}</span>
+  </p>
+
+  {% if job.description %}<p class="desc">{{ job.description }}</p>{% endif %}
+
+  <p class="meta">
+    {% if job.posted_at %}Posted {{ job.posted_at|nice_date }}{% else %}Posting date not stated{% endif %}
+    &middot; first seen {{ job.first_seen_at|ago }}
+    {% if job.url %}&middot; <a href="{{ job.url }}" target="_blank" rel="noopener">Open posting &rarr;</a>{% endif %}
+  </p>
+
+  {% if not job.decision %}
+    <form method="post" action="{{ url_for('jobs.decide', job_id=job.id) }}" class="decide">
+      <input type="hidden" name="next" value="{{ request.full_path }}">
+      <button name="decision" value="shortlisted" class="btn primary small">Shortlist</button>
+      <button name="decision" value="dismissed" class="btn small">Dismiss</button>
+    </form>
+  {% else %}
+    <p class="decided {{ job.decision }}">
+      {{ job.decision|capitalize }} {{ job.decided_at|ago }}
+      {% if job.decision_note %}&mdash; {{ job.decision_note }}{% endif %}
+    </p>
+  {% endif %}
+</article>

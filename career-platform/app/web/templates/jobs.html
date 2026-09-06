@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Jobs &middot; AI Career Platform{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Jobs</h1>
+  <a href="{{ url_for('jobs.archive') }}">Search the archive ({{ counts.archive }}) &rarr;</a>
+</div>
+
+<nav class="tabs">
+  {% for key, label in tabs.items() %}
+    <a href="{{ url_for('jobs.index', tab=key) }}" class="{{ 'on' if tab == key }}">
+      {{ label }}
+      <span class="count">{{ counts[key if key != 'new' else 'new'] }}</span>
+    </a>
+  {% endfor %}
+  <a href="{{ url_for('jobs.signals') }}">Market signals <span class="count">{{ counts.signals }}</span></a>
+</nav>
+
+{% if tab == 'new' %}
+  <p class="hint">
+    Postings first seen recently and not yet decided, filtered to roughly the last
+    {{ config.FRESHNESS_DAYS }} days. Anything you have already seen stays out of this
+    view permanently, however many sources report it again.
+  </p>
+{% endif %}
+
+{% if jobs %}
+  {% for job in jobs %}{% include "_job_card.html" %}{% endfor %}
+{% else %}
+  <div class="empty"><p>Nothing here yet.</p></div>
+{% endif %}
+{% endblock %}

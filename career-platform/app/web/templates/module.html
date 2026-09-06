@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}{{ module.name }}{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('academy.index') }}">&larr; Academy</a></p>
+
+<div class="module-head">
+  <div>
+    <h1>{{ module.name }}</h1>
+    <p class="company">{{ module.blurb }}</p>
+  </div>
+  <div class="fit">
+    <span class="fit-score">{{ priority_label(module.priority or 0) }}</span>
+    <span class="fit-label">priority</span>
+  </div>
+</div>
+
+<div class="baseline">
+  <strong>Starting point: {{ (module.baseline_level or '')|capitalize }}.</strong>
+  {{ module.baseline_note }}
+  {% if performance %}
+    <br><span class="muted">Quiz record so far: {{ performance.correct }} of
+    {{ performance.attempts }} correct ({{ performance.accuracy|pct }}).</span>
+  {% endif %}
+</div>
+
+<div class="columns">
+  <section class="col-main">
+    <div class="prose">
+      {% if primer %}
+        {{ primer.body|markdown }}
+      {% else %}
+        <p>No primer loaded for this module.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <aside class="col-side">
+    <div class="section-head"><h2>Deeper dives</h2></div>
+    <p class="hint small">
+      External readings, audio and video, refreshed by search rather than kept as a
+      fixed list. The primer above is the stable layer; these change.
+    </p>
+
+    {% if resources %}
+      {% for r in resources %}
+        <div class="resource">
+          <a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.title }}</a>
+          <div class="muted small">
+            <span class="tag fmt-{{ r.format }}">{{ r.format }}</span>
+            {{ r.publisher or '' }}{% if r.published_at %} &middot; {{ r.published_at }}{% endif %}
+          </div>
+          {% if r.why %}<p class="small">{{ r.why }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted small">No links yet. Refresh to search for current material.</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('academy.refresh_resources', module_key=module.key) }}">
+      <button class="btn small" {{ 'disabled' if not research_ready }}>
+        {{ 'Refresh links' if research_ready else 'Refresh needs an API key' }}
+      </button>
+      {% if last_refreshed %}
+        <p class="muted small">Last refreshed {{ last_refreshed|ago }}{% if stale %} &mdash; due{% endif %}.</p>
+      {% endif %}
+    </form>
+
+    <div class="section-head" style="margin-top:2rem"><h2>Feedback</h2></div>
+    <p class="hint small">
+      Nudges how much this module is weighted and how soon its content is refreshed.
+      Currently: {{ feedback.more }} more, {{ feedback.less }} less.
+    </p>
+    <form method="post" action="{{ url_for('academy.feedback', module_key=module.key) }}" class="feedback">
+      <input type="text" name="note" placeholder="Optional: what specifically?">
+      <div>
+        <button name="signal" value="more" class="btn small primary">More of this</button>
+        <button name="signal" value="less" class="btn small">Less of this</button>
+      </div>
+    </form>
+    {% if notes %}
+      <ul class="history small">
+        {% for n in notes %}<li>{{ n.signal }}: {{ n.note }} <span class="muted">{{ n.created_at|ago }}</span></li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="section-head" style="margin-top:2rem"><h2>Questions</h2></div>
+    <form method="post" action="{{ url_for('academy.generate_questions', module_key=module.key) }}">
+      <button class="btn small" {{ 'disabled' if not research_ready }}>
+        {{ 'Write new questions from this primer' if research_ready else 'Generating needs an API key' }}
+      </button>
+    </form>
+  </aside>
+</div>
+
+{% if glossary %}
+<div class="card wide">
+  <h2>Glossary</h2>
+  <dl class="glossary">
+    {% for t in glossary %}
+      <dt>{{ t.term }}</dt><dd>{{ t.definition }}</dd>
+    {% endfor %}
+  </dl>
+</div>
+{% endif %}
+{% endblock %}

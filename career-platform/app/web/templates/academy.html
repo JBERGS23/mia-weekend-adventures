@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Academy{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Academy</h1>
+  <a href="{{ url_for('academy.glossary') }}">Glossary &rarr;</a>
+</div>
+
+<div class="quiz-strip">
+  <div>
+    <strong>Today's questions</strong>
+    <p class="muted small">
+      {{ quiz_progress.answered }} of {{ quiz_progress.total or config.QUESTIONS_PER_DAY }} answered
+      {%- if quiz_progress.answered %}, {{ quiz_progress.correct }} correct{% endif %}
+      {%- if streak %} &middot; {{ streak }}-day streak{% endif %}
+    </p>
+  </div>
+  <a class="btn primary" href="{{ url_for('academy.daily_quiz') }}">
+    {{ 'Review today' if quiz_progress.complete else 'Start' }}
+  </a>
+</div>
+
+<p class="hint">
+  These five modules are permanent. The content inside them changes; the modules do not,
+  so you can always pick up where you left off. Priority is set by the gap engine and
+  drives which module the daily questions lean toward.
+</p>
+
+{% for m in modules %}
+  {% set perf = performance.get(m.key) %}
+  <a class="card module" href="{{ url_for('academy.module', module_key=m.key) }}">
+    <div class="job-head">
+      <div>
+        <h3>{{ m.name }}</h3>
+        <p class="company">{{ m.blurb }}</p>
+      </div>
+      <div class="fit">
+        <span class="fit-score">{{ priority_label(m.priority or 0) }}</span>
+        <span class="fit-label">priority</span>
+      </div>
+    </div>
+    <p class="tags">
+      <span class="tag">Baseline: {{ (m.baseline_level or '')|capitalize }}</span>
+      {% if perf %}
+        <span class="tag">Quiz: {{ perf.correct }}/{{ perf.attempts }} ({{ perf.accuracy|pct }})</span>
+      {% else %}
+        <span class="tag muted">No quiz history yet</span>
+      {% endif %}
+      <span class="tag muted">{{ m.question_count }} questions</span>
+      <span class="tag muted">{{ m.resource_count }} deeper-dive links</span>
+    </p>
+  </a>
+{% endfor %}
+{% endblock %}

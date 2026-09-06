@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} &middot; {{ job.company }}{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('jobs.index') }}">&larr; Jobs</a></p>
+
+<div class="card wide">
+  <div class="job-head">
+    <div>
+      <h1>{{ job.title }}</h1>
+      <p class="company">{{ job.company }}{% if job.location %} &middot; {{ job.location }}{% endif %}</p>
+    </div>
+    <div class="fit"><span class="fit-score">{{ '%.2f'|format(job.fit_score) }}</span><span class="fit-label">fit</span></div>
+  </div>
+
+  <p class="tags">
+    <span class="tag track">{{ job.track|track }}</span>
+    {% if job.ai_mandate %}<span class="tag mandate">AI mandate</span>{% endif %}
+    <span class="tag comp comp-{{ job.comp_confidence|lower }}">{{ job|comp }} &middot; {{ job.comp_confidence }}</span>
+    {% if below_floor %}<span class="tag warn">below ${{ '{:,}'.format(config.COMP_FLOOR) }} floor</span>{% endif %}
+    {% if job.seniority %}<span class="tag">{{ job.seniority|replace('_', ' ') }}</span>{% endif %}
+  </p>
+
+  {% if job.comp_note %}<p class="muted small">Compensation note: {{ job.comp_note }}</p>{% endif %}
+
+  <h3>What the role is</h3>
+  <p>{{ job.description or 'No description was captured.' }}</p>
+
+  {% if job.ai_mandate and job.mandate_evidence %}
+    <h3>Mandate evidence</h3>
+    <blockquote>{{ job.mandate_evidence }}</blockquote>
+  {% endif %}
+
+  {% if requirements %}
+    <h3>What they are asking for</h3>
+    <ul class="reqs">{% for r in requirements %}<li>{{ r }}</li>{% endfor %}</ul>
+    <p class="muted small">These feed the skills-gap engine, which sets your study priority.</p>
+  {% endif %}
+
+  <h3>Why it scored this way</h3>
+  <p class="muted">{{ job.fit_rationale }}</p>
+
+  <p class="meta">
+    Source: {{ job.source_name }} &middot;
+    {% if job.posted_at %}posted {{ job.posted_at|nice_date }}{% if not job.posted_at_is_exact %} (estimated){% endif %}
+    {% else %}posting date not stated{% endif %}
+    &middot; first seen {{ job.first_seen_at|ago }} &middot; last seen {{ job.last_seen_at|ago }}
+    {% if job.url %}<br><a href="{{ job.url }}" target="_blank" rel="noopener">Open the original posting &rarr;</a>{% endif %}
+  </p>
+
+  <form method="post" action="{{ url_for('jobs.decide', job_id=job.id) }}" class="decide-full">
+    <input type="hidden" name="next" value="{{ url_for('jobs.detail', job_id=job.id) }}">
+    <input type="text" name="note" placeholder="Optional note" value="">
+    <div>
+      <button name="decision" value="shortlisted" class="btn primary">Shortlist</button>
+      <button name="decision" value="dismissed" class="btn">Dismiss</button>
+      {% if job.decision %}<button name="decision" value="" class="btn ghost">Reset to undecided</button>{% endif %}
+    </div>
+  </form>
+  {% if not job.decision %}
+    <p class="hint">Shortlisting is what puts this company into the networking module.</p>
+  {% endif %}
+</div>
+
+{% if related_targets %}
+<div class="card wide">
+  <h3>Networking targets for {{ job.company }}</h3>
+  {% for t in related_targets %}
+    <div class="mini-target">
+      <strong>{{ t.person_name }}</strong> <span class="muted">{{ t.person_title or '' }}</span>
+      <p class="small">{{ t.rationale }}</p>
+    </div>
+  {% endfor %}
+  <a href="{{ url_for('networking.index') }}">Open networking &rarr;</a>
+</div>
+{% endif %}
+
+{% if history %}
+<div class="card wide">
+  <h3>Decision history</h3>
+  <ul class="history">
+    {% for h in history %}
+      <li>{{ h.decision|capitalize }} &middot; {{ h.decided_at|ago }}{% if h.note %} &mdash; {{ h.note }}{% endif %}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

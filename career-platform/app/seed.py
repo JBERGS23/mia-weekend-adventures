@@ -31,6 +31,12 @@ def seed_all(conn: sqlite3.Connection) -> dict[str, int]:
         "glossary": seed_glossary(conn),
         "questions": seed_starter_questions(conn),
     }
+    # Put priorities on the normalised scale straight away. Without this a
+    # freshly seeded database reports priorities that are not comparable with
+    # the ones every later recompute produces.
+    from app.gap import engine
+
+    engine.recompute(conn, reason="seed")
     return counts
 
 
@@ -83,8 +89,9 @@ def seed_gap_baseline(conn: sqlite3.Connection) -> int:
                 "quiz_accuracy": None,
                 "quiz_attempts": 0,
                 "feedback_bias": 1.0,
-                # Provisional; the gap engine normalises these on first run.
-                "priority": round((1.0 - score) * module.weight_damping, 4),
+                # Placeholder only - seed_all() recomputes and normalises these
+                # before returning, so this value is never read as-is.
+                "priority": 0.0,
                 "updated_at": now,
             },
         )
@@ -101,6 +108,9 @@ def _split_primer(text: str) -> tuple[str, list[tuple[str, str]]]:
     """
     parts = re.split(r"^##\s+Glossary\s*$", text, maxsplit=1, flags=re.MULTILINE)
     body = parts[0].rstrip()
+    # Drop the file's leading H1: the module name is already shown as the page
+    # heading, so keeping it would print the title twice.
+    body = re.sub(r"\A#\s+.*\n+", "", body)
     glossary: list[tuple[str, str]] = []
     if len(parts) == 2:
         for line in parts[1].splitlines():

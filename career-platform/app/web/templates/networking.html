@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Networking{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Networking</h1>
+  <span class="muted">{{ capacity.active }} of {{ capacity.max }} active</span>
+</div>
+
+<p class="hint">
+  Deliberately short. At most {{ capacity.max }} live targets, ranked, refreshed as better
+  ones appear and weaker ones age out. Companies with a shortlisted role rank higher
+  because there is a concrete reason to reach out; a couple of slots are always held for
+  latent-demand targets where no role is posted yet.
+</p>
+
+{% if capacity.below_min and shortlisted %}
+  <div class="notice">
+    Room for more. You have {{ shortlisted|length }} shortlisted roles &mdash; generate
+    targets for any of them below.
+  </div>
+{% endif %}
+
+{% if targets %}
+  {% for t in targets %}
+  <article class="card target">
+    <div class="job-head">
+      <div>
+        <h3>
+          {% if t.profile_url %}<a href="{{ t.profile_url }}" target="_blank" rel="noopener">{{ t.person_name }}</a>
+          {% else %}{{ t.person_name }}{% endif %}
+        </h3>
+        <p class="company">{{ t.person_title or '' }}{% if t.person_title %} &middot; {% endif %}{{ t.company }}</p>
+      </div>
+      <div class="fit"><span class="fit-score">{{ '%.2f'|format(t.score) }}</span><span class="fit-label">rank</span></div>
+    </div>
+
+    <p class="tags">
+      <span class="tag rec-{{ t.rec_type }}">{{ 'Person' if t.rec_type == 'person' else 'Engage with' }}</span>
+      {% if t.is_latent %}<span class="tag latent">Latent demand</span>{% endif %}
+      {% if t.job_title %}<span class="tag mandate">Open role: {{ t.job_title }}</span>{% endif %}
+    </p>
+
+    <p class="desc">{{ t.rationale }}</p>
+
+    {% if t.suggested_action %}
+      <div class="action"><strong>Next step:</strong> {{ t.suggested_action }}</div>
+    {% endif %}
+
+    <p class="meta">
+      {% if t.evidence_note %}{{ t.evidence_note }}{% endif %}
+      {% if t.evidence_url %} &middot; <a href="{{ t.evidence_url }}" target="_blank" rel="noopener">Evidence &rarr;</a>{% endif %}
+      {% if t.signal_headline %}<br>Signal: {{ t.signal_headline }}{% endif %}
+      &middot; added {{ t.created_at|ago }}
+    </p>
+
+    <form method="post" action="{{ url_for('networking.set_status', target_id=t.id) }}" class="decide">
+      <input type="text" name="note" placeholder="Optional note">
+      <button name="status" value="done" class="btn small primary">Done</button>
+      <button name="status" value="dismissed" class="btn small">Not useful</button>
+    </form>
+  </article>
+  {% endfor %}
+{% else %}
+  <div class="empty">
+    <p>No active targets.</p>
+    <p class="muted">Shortlist a role in Jobs, and targets for that company are generated automatically.</p>
+  </div>
+{% endif %}
+
+<div class="card wide">
+  <h2>Add more</h2>
+  <p class="hint small">
+    Latent-demand targets keep {{ capacity.latent }} of the reserved slots. Topping up
+    pulls from the strongest unused market signals.
+  </p>
+  <form method="post" action="{{ url_for('networking.refresh_latent') }}">
+    <button class="btn small" {{ 'disabled' if not research_ready }}>
+      {{ 'Top up latent-demand targets' if research_ready else 'Needs an API key' }}
+    </button>
+  </form>
+
+  {% if shortlisted %}
+    <h3>Shortlisted roles</h3>
+    <ul class="plain">
+      {% for job in shortlisted %}
+        <li>
+          <a href="{{ url_for('jobs.detail', job_id=job.id) }}">{{ job.title }}</a> &middot; {{ job.company }}
+          <form method="post" action="{{ url_for('networking.generate_for_job', job_id=job.id) }}" class="inline">
+            <button class="btn tiny" {{ 'disabled' if not research_ready }}>Find people</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+
+{% if done or aged_out %}
+<div class="card wide">
+  <h2>History</h2>
+  {% if done %}
+    <h3>Done</h3>
+    <ul class="plain">{% for t in done %}<li>{{ t.person_name }} &middot; {{ t.company }} <span class="muted small">{{ t.status_changed_at|ago }}{% if t.note %} &mdash; {{ t.note }}{% endif %}</span></li>{% endfor %}</ul>
+  {% endif %}
+  {% if aged_out %}
+    <h3>Aged out</h3>
+    <p class="muted small">Crowded out by stronger targets. Nothing is deleted.</p>
+    <ul class="plain">{% for t in aged_out %}<li>{{ t.person_name }} &middot; {{ t.company }}</li>{% endfor %}</ul>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

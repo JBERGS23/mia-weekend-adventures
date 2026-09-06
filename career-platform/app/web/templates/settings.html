@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Diagnostics{% endblock %}
+{% block content %}
+<h1>Diagnostics</h1>
+<p class="hint">
+  Nothing here needs reading day to day. It exists so nothing in the app is a black box:
+  how the study priorities were derived, what the scans did, and what the API has cost.
+</p>
+
+<div class="card wide">
+  <h2>Skills-gap weights</h2>
+  <p class="hint small">
+    Priority = how much room is left to improve, tilted by what scanned roles are asking
+    for, nudged by your feedback, then damped for modules you are already strong in.
+  </p>
+  <table class="table">
+    <thead><tr><th>Module</th><th>Baseline</th><th>Quiz</th><th>Market demand</th><th>Feedback</th><th>Priority</th></tr></thead>
+    <tbody>
+    {% for row in gap %}
+      <tr>
+        <td>{{ row.name }}</td>
+        <td>{{ row.baseline_level|capitalize }} <span class="muted small">({{ '%.2f'|format(row.baseline_score) }})</span></td>
+        <td>{% if row.quiz_accuracy is not none %}{{ row.quiz_accuracy|pct }} of {{ row.quiz_attempts }}{% else %}<span class="muted">no data</span>{% endif %}</td>
+        <td>{{ row.demand_score|pct }}</td>
+        <td>{{ '%.2f'|format(row.feedback_bias) }}x</td>
+        <td><strong>{{ row.priority|pct(1) }}</strong> <span class="muted small">{{ priority_label(row.priority) }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <form method="post" action="{{ url_for('main.recompute_gap') }}"><button class="btn small">Recompute now</button></form>
+</div>
+
+<div class="card wide">
+  <h2>Reference layer</h2>
+  <p class="hint small">
+    A broader view of what senior AI strategy roles require, refreshed by search rather
+    than hardcoded. Blended with the live job pool to set market demand above.
+  </p>
+  <form method="post" action="{{ url_for('main.refresh_reference') }}">
+    <button class="btn small" {{ 'disabled' if not research_ready }}>
+      {{ 'Refresh reference layer' if research_ready else 'Needs an API key' }}
+    </button>
+    {% if reference_stale %}<span class="muted small">Due for a refresh.</span>{% endif %}
+  </form>
+  {% if reference %}
+    <ul class="plain small">
+      {% for r in reference %}
+        <li><strong>{{ r.module_key }}</strong>: {{ r.requirement }}
+          <span class="muted">({{ '%.2f'|format(r.importance) }}{% if r.source_title %} &mdash; {{ r.source_title }}{% endif %})</span></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted small">Not populated yet. The gap engine falls back to the live job pool alone.</p>
+  {% endif %}
+</div>
+
+<div class="card wide">
+  <h2>Scan history</h2>
+  {% if runs %}
+  <table class="table">
+    <thead><tr><th>Started</th><th>Status</th><th>Sources</th><th>Found</th><th>New</th><th>Notes</th></tr></thead>
+    <tbody>
+    {% for r in runs %}
+      <tr>
+        <td>{{ r.started_at|ago }}</td>
+        <td class="status-{{ r.status }}">{{ r.status }}</td>
+        <td>{{ r.sources_run }}/{{ r.sources_total }}</td>
+        <td>{{ r.jobs_found }}</td>
+        <td>{{ r.jobs_new }}</td>
+        <td class="muted small">{{ r.error or r.progress_note or '' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">No scans yet.</p>{% endif %}
+</div>
+
+<div class="card wide">
+  <h2>API usage</h2>
+  {% if totals and totals.calls %}
+    <p>
+      {{ totals.calls }} research calls &middot;
+      {{ '{:,}'.format(totals.input_tokens or 0) }} input tokens &middot;
+      {{ '{:,}'.format(totals.output_tokens or 0) }} output tokens &middot;
+      {{ totals.searches or 0 }} web searches
+    </p>
+    <table class="table">
+      <thead><tr><th>When</th><th>Purpose</th><th>In</th><th>Out</th><th>Searches</th><th>Took</th><th>Result</th></tr></thead>
+      <tbody>
+      {% for c in calls %}
+        <tr>
+          <td class="muted small">{{ c.created_at|ago }}</td>
+          <td>{{ c.purpose }}</td>
+          <td>{{ '{:,}'.format(c.input_tokens or 0) }}</td>
+          <td>{{ '{:,}'.format(c.output_tokens or 0) }}</td>
+          <td>{{ c.web_searches or 0 }}</td>
+          <td class="muted small">{{ ((c.duration_ms or 0) / 1000)|round(1) }}s</td>
+          <td class="{{ 'status-complete' if c.ok else 'status-failed' }}">{{ 'ok' if c.ok else (c.error or 'failed') }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No API calls yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}AI Career Platform{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('main.dashboard') }}">AI Career Platform</a>
+  <nav>
+    <a href="{{ url_for('main.dashboard') }}" class="{{ 'on' if request.blueprint == 'main' and request.endpoint == 'main.dashboard' }}">Today</a>
+    <a href="{{ url_for('jobs.index') }}" class="{{ 'on' if request.blueprint == 'jobs' }}">Jobs</a>
+    <a href="{{ url_for('academy.index') }}" class="{{ 'on' if request.blueprint == 'academy' }}">Academy</a>
+    <a href="{{ url_for('networking.index') }}" class="{{ 'on' if request.blueprint == 'networking' }}">Networking</a>
+    <a href="{{ url_for('main.settings') }}" class="{{ 'on' if request.endpoint == 'main.settings' }}">Diagnostics</a>
+  </nav>
+  <form method="post" action="{{ url_for('main.start_scan') }}" class="scan-form">
+    <button type="submit" class="btn primary" {{ 'disabled' if scanning }}>
+      {{ 'Scanning...' if scanning else 'Run scan' }}
+    </button>
+  </form>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flashes">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div id="scan-banner" class="scan-banner" {{ '' if scanning else 'hidden' }}>
+  <span class="spinner"></span>
+  <span id="scan-note">Scan running...</span>
+</div>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  Local single-user tool. Data lives in <code>data/career.db</code> on this machine.
+</footer>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

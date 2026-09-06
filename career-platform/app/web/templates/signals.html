@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Market signals{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Market signals</h1>
+  <a href="{{ url_for('jobs.index') }}">&larr; Back to the queue</a>
+</div>
+<p class="hint">
+  Companies that look like they will need this leadership soon, with no posting yet.
+  This is where the proactive edge over a normal job search lives: turn one into a
+  networking target and reach out before a role exists.
+  Latent targets hold {{ capacity.latent }} of the reserved slots.
+</p>
+
+{% if signals %}
+  {% for s in signals %}
+  <article class="card">
+    <div class="job-head">
+      <div>
+        <h3>{{ s.company }}</h3>
+        <p class="company">{{ s.headline }}</p>
+      </div>
+      <div class="fit"><span class="fit-score">{{ '%.2f'|format(s.strength) }}</span><span class="fit-label">signal</span></div>
+    </div>
+    <p class="tags">
+      <span class="tag">{{ s.signal_type|replace('_', ' ')|capitalize }}</span>
+      {% if s.signal_date %}<span class="tag muted">{{ s.signal_date|nice_date }}</span>{% endif %}
+    </p>
+    {% if s.detail %}<p class="desc">{{ s.detail }}</p>{% endif %}
+    <p class="meta">
+      {% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener">Source &rarr;</a> &middot; {% endif %}
+      found {{ s.created_at|ago }}
+    </p>
+    <form method="post" action="{{ url_for('jobs.network_signal', signal_id=s.id) }}">
+      <button class="btn small primary">Find a way in</button>
+    </form>
+  </article>
+  {% endfor %}
+{% else %}
+  <div class="empty"><p>No signals yet. Run a scan.</p></div>
+{% endif %}
+{% endblock %}
