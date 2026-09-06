@@ -1,0 +1,8 @@
+# The whole app needs exactly two third-party packages.
+# SQLite ships with Python, so there is no database to install.
+
+flask>=3.0
+anthropic>=1.0
+
+# Testing only
+pytest>=8.0
